@@ -1,0 +1,30 @@
+#!/bin/sh
+
+[ -n "$ZAPRET_BASE" ] || ZAPRET_BASE=/opt/zapret
+. "$ZAPRET_BASE/config"
+
+ipt_del() {
+	iptables -C "$@" > /dev/null 2>&1 && iptables -D "$@"
+}
+
+ipt6_del() {
+	ip6tables -C "$@" > /dev/null 2>&1 && ip6tables -D "$@"
+}
+
+if [ "${MODE_QUIC:-0}" -eq 1 ]; then
+	if [ -n "$IFACE_WAN" ]; then
+		for IFACE_WAN_N in $IFACE_WAN; do
+			if [ "${DISABLE_IPV4:-0}" -eq 0 ]; then
+				ipt_del _NDM_MASQ -t nat -o "$IFACE_WAN_N" -j MASQUERADE
+				echo "MASQUERADE rule deleted for interface $IFACE_WAN_N"
+			fi
+
+			# There is no _NDM_MASQ for IPv6 by default, but it MIGHT be present if IPv6 support is enabled in the router settings.
+			# If you see _NDM_MASQ when running `ip6tables-save -t nat`, uncomment these lines.
+#			if [ "${DISABLE_IPV6:-0}" -eq 0]; then
+#				ipt6_del _NDM_MASQ -t nat -o "$IFACE_WAN_N" -j MASQUERADE
+#				echo "IPv6 MASQUERADE rule deleted for interface $IFACE_WAN_N"
+#			fi
+		done
+	fi
+fi
