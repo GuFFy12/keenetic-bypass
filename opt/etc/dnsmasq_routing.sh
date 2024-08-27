@@ -79,7 +79,7 @@ case "$1" in
 
 	*)
 	N=/etc/init.d/$NAME
-	echo "Usage: $N {start|hot_start|stop|restart|pause|resume|flush}" >&2
+	echo "Usage: $N {start|stop|restart|flush|stop_ipset}" >&2
 	exit 1
 	;;
 esac
