@@ -6,8 +6,16 @@
 [ "$system_name" = "$INTERFACE" ] || exit 0
 [ "$layer" = "link" ] || exit 0
 
+ip_route_exists()
+{
+  [ -n "$(ip route list table "$MARK")" ]
+}
+
 if [ "$level" = "running" ]; then
-	/opt/etc/dnsmasq_routing.sh start
+	ip route list table "$MARK" | grep -q "blackhole default" && ip route del blackhole default table "$MARK"
+	ip_route_exists || ip route add default dev "$INTERFACE" table "$MARK"
 else
-	/opt/etc/dnsmasq_routing.sh stop
+	if [ "$KILL_SWITCH" = "1" ]; then
+		ip_route_exists || ip route add blackhole default table "$MARK"
+	fi
 fi

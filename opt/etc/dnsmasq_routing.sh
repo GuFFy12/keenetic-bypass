@@ -34,30 +34,31 @@ fw()
 
 ipset_exists()
 {
-    [ -n "$(ipset --quiet list "$TABLE")" ]
+  [ -n "$(ipset --quiet list "$TABLE")" ]
 }
 
 ip_rule_exists()
 {
-    ip rule list | grep -q "lookup $MARK"
+  ip rule list | grep -q "lookup $MARK"
 }
 
 ip_route_exists()
 {
-    [ -n "$(ip route list table "$MARK")" ]
+  [ -n "$(ip route list table "$MARK")" ]
 }
 
 do_start()
 {
 	ipset_exists || ipset create "$TABLE" hash:ip timeout "$TIMEOUT"
 	ip_rule_exists ||	ip rule add fwmark "$MARK" table "$MARK"
-	ip_route_exists || ip route add default dev "$INTERFACE" table "$MARK"
+	if [ "$KILL_SWITCH" = "1" ]; then
+		ip_route_exists || ip route add blackhole default table "$MARK"
+	fi
 	fw 1
 }
 do_stop()
 {
 	fw 0
-	ip_route_exists && ip route del default dev "$INTERFACE" table "$MARK"
 	ip_rule_exists && ip rule del fwmark "$MARK" table "$MARK"
 }
 do_flush()
@@ -73,30 +74,30 @@ do_stop_ipset()
 case "$1" in
 	start)
 		do_start
-	;;
+		;;
 
 	stop)
 		do_stop
-	;;
+		;;
 
 	restart)
 		do_stop
 		do_start
-	;;
+		;;
 
 	flush)
 		do_flush
-	;;
+		;;
 
 	stop_ipset)
 		do_stop_ipset
-	;;
+		;;
 
 	*)
-	N=/etc/init.d/$NAME
-	echo "Usage: $N {start|stop|restart|flush|stop_ipset}" >&2
-	exit 1
-	;;
+		N=/etc/init.d/$NAME
+		echo "Usage: $N {start|stop|restart|flush|stop_ipset}" >&2
+		exit 1
+		;;
 esac
 
 exit 0
