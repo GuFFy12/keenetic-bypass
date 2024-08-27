@@ -32,27 +32,42 @@ fw()
 	on_off_function ipta ipt_del "$1" PREROUTING -w -t mangle ! -s "$INTERFACE_SUBNET" -m set --match-set "$TABLE" dst -j CONNMARK --restore-mark
 }
 
+ipset_exists()
+{
+    [ -n "$(ipset --quiet list "$TABLE")" ]
+}
+
+ip_rule_exists()
+{
+    ip rule list | grep -q "lookup $MARK"
+}
+
+ip_route_exists()
+{
+    [ -n "$(ip route list table "$MARK")" ]
+}
+
 do_start()
 {
-	ipset create "$TABLE" hash:ip timeout "$TIMEOUT" > /dev/null 2>&1
-	ip rule add fwmark "$MARK" table "$MARK"
-	ip route add default dev "$INTERFACE" table "$MARK" > /dev/null 2>&1
+	ipset_exists || ipset create "$TABLE" hash:ip timeout "$TIMEOUT"
+	ip_rule_exists ||	ip rule add fwmark "$MARK" table "$MARK"
+	ip_route_exists || ip route add default dev "$INTERFACE" table "$MARK"
 	fw 1
 }
 do_stop()
 {
 	fw 0
-	ip route del default dev "$INTERFACE" table "$MARK" > /dev/null 2>&1
-	ip rule del fwmark "$MARK" table "$MARK"
+	ip_route_exists && ip route del default dev "$INTERFACE" table "$MARK"
+	ip_rule_exists && ip rule del fwmark "$MARK" table "$MARK"
 }
 do_flush()
 {
-	ipset flush "$TABLE"
+	ipset_exists && ipset flush "$TABLE"
 }
 do_stop_ipset()
 {
 	do_stop
-	ipset destroy "$TABLE" > /dev/null 2>&1
+	ipset_exists && ipset destroy "$TABLE"
 }
 
 case "$1" in

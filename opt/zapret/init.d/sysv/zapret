@@ -17,11 +17,13 @@ DESC=anti-zapret
 
 load_module()
 {
-	if insmod "/lib/modules/$(uname -r)/$1.ko" > /dev/null 2>&1; then
-		echo "$1.ko loaded"
-	else
-		echo "Cannot find $1.ko kernel module, aborting"
-		exit 1
+	if ! lsmod | grep -q "$1"; then
+		if insmod "/lib/modules/$(uname -r)/$1.ko" > /dev/null 2>&1; then
+			echo "$1.ko loaded"
+		else
+			echo "Cannot find $1.ko kernel module, aborting"
+			exit 1
+		fi
 	fi
 }
 
