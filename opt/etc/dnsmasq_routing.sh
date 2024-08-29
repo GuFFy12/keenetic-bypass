@@ -50,7 +50,7 @@ ip_route_exists()
 do_start()
 {
 	ipset_exists || ipset create "$TABLE" hash:ip timeout "$TIMEOUT"
-	ip_rule_exists ||	ip rule add fwmark "$MARK" table "$MARK"
+	ip_rule_exists || ip rule add fwmark "$MARK" table "$MARK"
 	if [ "$KILL_SWITCH" = "1" ]; then
 		ip_route_exists || ip route add blackhole default table "$MARK"
 	fi

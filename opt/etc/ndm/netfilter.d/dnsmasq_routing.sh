@@ -2,12 +2,12 @@
 
 . /opt/etc/dnsmasq_routing.conf
 
-[ "$type" = "ip6tables" ] && exit
-[ "$table" != "mangle" ] && exit
+[ "$type" = "iptables" ] || exit 0
+[ "$table" = "mangle" ] || exit 0
 
-[ -n "$(ipset --quiet list "$TABLE")" ] || exit
-ip rule list | grep -q "lookup $MARK" || exit
-[ -n "$(ip route list table "$MARK")" ] || exit
+[ -n "$(ipset --quiet list "$TABLE")" ] || exit 0
+ip rule list | grep -q "lookup $MARK" || exit 0
+[ -n "$(ip route list table "$MARK")" ] || exit 0
 
 ipta()
 {

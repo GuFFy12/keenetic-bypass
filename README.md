@@ -20,19 +20,27 @@
 
 3. **Установка скриптов и конфигурационных файлов:**
 
-    - Скачайте Zapret и выполните первоначальную установку:
+    - Скачайте Zapret:
 
       ```bash
-      sh install_easy.sh
+      cd /opt/
+      git clone --depth=1 https://github.com/bol-van/zapret.git
       ```
 
-    - Скопируйте все файлы из репозитория в корень `/opt` с заменой существующих.
+    - Скопируйте все файлы из репозитория в корень `/opt` с заменой существующих (руками или через ftp / webui).
     - Если symlink в init.d сломаны, удалите их и создайте заново:
 
       ```bash
       ln -s /opt/zapret/init.d/sysv/zapret /opt/etc/init.d/S52zapret
       ln -s /opt/etc/dnsmasq_routing.sh /opt/etc/init.d/S53dnsmasq_routing
       ```
+
+   - Выполните первоначальную настройку:
+
+     ```bash
+     cd /opt/zapret/
+     sh install_easy.sh
+     ```
 
 ### Настройка конфигурационных файлов:
 
