@@ -47,9 +47,22 @@ ip_route_exists()
   [ -n "$(ip route list table "$MARK")" ]
 }
 
+do_save()
+{
+	ipset_exists && ipset save blocklist | tail -n +2 > "/opt/etc/$TABLE.rules"
+}
+do_restore()
+{
+	ipset_exists && ipset restore -exist < "/opt/etc/$TABLE.rules"
+}
+do_flush()
+{
+	ipset_exists && ipset flush "$TABLE"
+}
 do_start()
 {
 	ipset_exists || ipset create "$TABLE" hash:ip timeout "$TIMEOUT"
+	[ "$SAVE_TABLE" = "1" ] && do_restore
 	ip_rule_exists || ip rule add fwmark "$MARK" table "$MARK"
 	if [ "$KILL_SWITCH" = "1" ]; then
 		ip_route_exists || ip route add blackhole default table "$MARK"
@@ -60,14 +73,7 @@ do_stop()
 {
 	fw 0
 	ip_rule_exists && ip rule del fwmark "$MARK" table "$MARK"
-}
-do_flush()
-{
-	ipset_exists && ipset flush "$TABLE"
-}
-do_stop_ipset()
-{
-	do_stop
+	[ "$SAVE_TABLE" = "1" ] && do_save
 	ipset_exists && ipset destroy "$TABLE"
 }
 
@@ -85,17 +91,21 @@ case "$1" in
 		do_start
 		;;
 
+	save)
+		do_save
+		;;
+
+	restore)
+		do_restore
+		;;
+
 	flush)
 		do_flush
 		;;
 
-	stop_ipset)
-		do_stop_ipset
-		;;
-
 	*)
 		N=/etc/init.d/$NAME
-		echo "Usage: $N {start|stop|restart|flush|stop_ipset}" >&2
+		echo "Usage: $N {start|stop|restart|save|restore|flush}" >&2
 		exit 1
 		;;
 esac
