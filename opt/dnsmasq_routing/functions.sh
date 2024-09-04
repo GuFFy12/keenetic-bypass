@@ -125,7 +125,7 @@ ipset_destroy()
 
 ipset_save()
 {
-	ipset_exists && ipset save blocklist | tail -n +2 > "$IPSET_RULES_FILE"
+	ipset_exists && ipset save "$IPSET_TABLE" | tail -n +2 > "$IPSET_RULES_FILE"
 }
 
 ipset_restore()
