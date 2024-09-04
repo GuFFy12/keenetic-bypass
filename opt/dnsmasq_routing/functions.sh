@@ -4,7 +4,7 @@ DNSMASQ_ROUTING_BASE=${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}
 DNSMASQ_ROUTING_CONF_FILE=${DNSMASQ_ROUTING_CONF_FILE:-$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf}
 . "$DNSMASQ_ROUTING_CONF_FILE"
 DNSMASQ_CONF_FILE=${DNSMASQ_CONF_FILE:-$DNSMASQ_ROUTING_BASE/dnsmasq.conf}
-DNSMASQ_PORT=${DNSMASQ_PORT:-5300}
+DNSMASQ_PID_FILE=${DNSMASQ_PID_FILE:-/opt/var/run/dnsmasq-5300.pid}
 IPSET_RULES_FILE=${IPSET_RULES_FILE:-$DNSMASQ_ROUTING_BASE/ipset_$IPSET_TABLE.rules}
 
 on_off_function()
@@ -135,30 +135,23 @@ ipset_flush()
 	ipset_exists && ipset flush "$IPSET_TABLE"
 }
 
-dnsmasq_get_pid()
+dnsmasq_pid_file_exists()
 {
-	local process=$(netstat -tanp | grep ":$DNSMASQ_PORT" | head -n 1 | awk '{print $7}')
-	[ -n "$process" ] || return 0
-	local process_name=$(echo "$process" | cut -d / -f2)
-	if [ "$process_name" != "dnsmasq" ]; then
-		echo Another process named "$process_name" is using port "$DNSMASQ_PORT" >&2
-		return 1
-	fi
-	process_id=$(echo "$process" | cut -d / -f1)
+	[ -f "$DNSMASQ_PID_FILE" ]
+}
+
+dnsmasq_exists()
+{
+	dnsmasq_pid_file_exists && [ -z "$(kill -0 "$(cat "$DNSMASQ_PID_FILE")" 2>&1)" ]
 }
 
 dnsmasq_start()
 {
-	local process_id
-	if dnsmasq_get_pid && [ -z "$process_id" ]; then
-		dnsmasq --conf-file="$DNSMASQ_CONF_FILE"
-	fi
+	dnsmasq_exists || dnsmasq --conf-file="$DNSMASQ_CONF_FILE"
 }
 
 dnsmasq_stop()
 {
-	local process_pid
-	if dnsmasq_get_pid && [ -n "$process_id" ]; then
-		kill "$process_pid"
-	fi
+	dnsmasq_exists && kill "$(cat "$DNSMASQ_PID_FILE")"
+	dnsmasq_pid_file_exists && unlink "$DNSMASQ_PID_FILE"
 }
