@@ -2,9 +2,9 @@
 
 DNSMASQ_ROUTING_BASE=${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}
 DNSMASQ_ROUTING_CONF_FILE=${DNSMASQ_ROUTING_CONF_FILE:-$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf}
-DNSMASQ_CONF_FILE=${DNSMASQ_CONF_FILE:-$DNSMASQ_ROUTING_BASE/dnsmasq.conf}
-# shellcheck disable=SC1090
 . "$DNSMASQ_ROUTING_CONF_FILE"
+DNSMASQ_CONF_FILE=${DNSMASQ_CONF_FILE:-$DNSMASQ_ROUTING_BASE/dnsmasq.conf}
+DNSMASQ_PORT=${DNSMASQ_PORT:-5300}
 IPSET_RULES_FILE=${IPSET_RULES_FILE:-$DNSMASQ_ROUTING_BASE/ipset_$IPSET_TABLE.rules}
 
 on_off_function()
@@ -12,12 +12,12 @@ on_off_function()
 	# $1 : function name on
 	# $2 : function name off
 	# $3 : 0 - off, 1 - on
-	F="$1"
-	[ "$3" = "1" ] || F="$2"
+	local fun="$1"
+	[ "$3" = "1" ] || fun="$2"
 	shift
 	shift
 	shift
-	"$F" "$@"
+	$fun "$@"
 }
 
 iptables_rule_exists()
@@ -76,15 +76,15 @@ ip_route_blackhole_unapply()
 
 ip_route_interface_apply()
 {
-	if ip_link_up; then
-		ip_route_exists || ip route add default dev "$INTERFACE" table "$MARK"
+	if ip_link_up && ! ip_route_exists; then
+		ip route add default dev "$INTERFACE" table "$MARK"
 	fi
 }
 
 ip_route_interface_unapply()
 {
-	if ip_link_up; then
-		ip_route_exists && ip route del default dev "$INTERFACE" table "$MARK"
+	if ip_link_up && ip_route_exists; then
+		ip route del default dev "$INTERFACE" table "$MARK"
 	fi
 }
 
@@ -125,7 +125,9 @@ ipset_save()
 
 ipset_restore()
 {
-	ipset_exists && [ -f "$IPSET_RULES_FILE" ] && ipset restore -exist < "$IPSET_RULES_FILE"
+	if ipset_exists && [ -f "$IPSET_RULES_FILE" ]; then
+		ipset restore -exist < "$IPSET_RULES_FILE"
+	fi
 }
 
 ipset_flush()
@@ -133,17 +135,30 @@ ipset_flush()
 	ipset_exists && ipset flush "$IPSET_TABLE"
 }
 
-dnsmasq_exist()
+dnsmasq_get_pid()
 {
-	netstat -tanp | grep -q :5300
+	local process=$(netstat -tanp | grep ":$DNSMASQ_PORT" | head -n 1 | awk '{print $7}')
+	[ -n "$process" ] || return 0
+	local process_name=$(echo "$process" | cut -d / -f2)
+	if [ "$process_name" != "dnsmasq" ]; then
+		echo Another process named "$process_name" is using port "$DNSMASQ_PORT" >&2
+		return 1
+	fi
+	process_pid=$(echo "$process" | cut -d / -f1)
 }
 
 dnsmasq_start()
 {
-	dnsmasq_exist || dnsmasq --conf-file="$DNSMASQ_CONF_FILE"
+	local process_pid
+	if dnsmasq_get_pid && [ -z "$process_pid" ]; then
+		dnsmasq --conf-file="$DNSMASQ_CONF_FILE"
+	fi
 }
 
 dnsmasq_stop()
 {
-	kill -9 "$(netstat -tanp | grep :5300 | head -n 1 | awk '{print $7}' | cut -d'/' -f1)"
+	local process_pid
+	if dnsmasq_get_pid && [ -n "$process_pid" ]; then
+		kill "$process_pid"
+	fi
 }
