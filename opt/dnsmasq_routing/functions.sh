@@ -54,9 +54,9 @@ iptables_unapply_rules()
 
 ip_route_exists()
 {
-	# $1 - route
-	route=${1:-.}
-	ip route list table "$MARK" | grep -q "$route"
+	# $1 - ip route
+	local ip_route=${1:-.}
+	ip route list table "$MARK" | grep -q "$ip_route"
 }
 
 ip_link_up()
@@ -144,13 +144,13 @@ dnsmasq_get_pid()
 		echo Another process named "$process_name" is using port "$DNSMASQ_PORT" >&2
 		return 1
 	fi
-	process_pid=$(echo "$process" | cut -d / -f1)
+	process_id=$(echo "$process" | cut -d / -f1)
 }
 
 dnsmasq_start()
 {
-	local process_pid
-	if dnsmasq_get_pid && [ -z "$process_pid" ]; then
+	local process_id
+	if dnsmasq_get_pid && [ -z "$process_id" ]; then
 		dnsmasq --conf-file="$DNSMASQ_CONF_FILE"
 	fi
 }
@@ -158,7 +158,7 @@ dnsmasq_start()
 dnsmasq_stop()
 {
 	local process_pid
-	if dnsmasq_get_pid && [ -n "$process_pid" ]; then
+	if dnsmasq_get_pid && [ -n "$process_id" ]; then
 		kill "$process_pid"
 	fi
 }
