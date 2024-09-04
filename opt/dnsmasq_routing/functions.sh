@@ -22,7 +22,7 @@ on_off_function()
 
 iptables_rule_exists()
 {
-	[ -z "$(iptables -C "$@" 2>&1)" ]
+	iptables -C "$@" > /dev/null 2>&1
 }
 
 iptables_rule_add()
@@ -61,7 +61,7 @@ ip_route_exists()
 
 ip_link_up()
 {
-	[ -n "$(ip link show t2s_br0 up)" ]
+	[ -n "$(ip link show "$INTERFACE" up)" ]
 }
 
 ip_route_blackhole_apply()
@@ -103,9 +103,14 @@ ip_rule_unapply()
 	ip_rule_exists && ip rule del fwmark "$MARK" table "$MARK"
 }
 
+ipset_rules_file_exists()
+{
+	[ -f "$IPSET_RULES_FILE" ]
+}
+
 ipset_exists()
 {
-	[ -n "$(ipset -q list "$IPSET_TABLE")" ]
+	ipset -q list "$IPSET_TABLE" > /dev/null 2>&1
 }
 
 ipset_create()
@@ -125,7 +130,7 @@ ipset_save()
 
 ipset_restore()
 {
-	if ipset_exists && [ -f "$IPSET_RULES_FILE" ]; then
+	if ipset_exists && ipset_rules_file_exists; then
 		ipset restore -exist < "$IPSET_RULES_FILE"
 	fi
 }
@@ -142,7 +147,7 @@ dnsmasq_pid_file_exists()
 
 dnsmasq_exists()
 {
-	dnsmasq_pid_file_exists && [ -z "$(kill -0 "$(cat "$DNSMASQ_PID_FILE")" 2>&1)" ]
+	dnsmasq_pid_file_exists && kill -0 "$(cat "$DNSMASQ_PID_FILE")" > /dev/null 2>&1
 }
 
 dnsmasq_start()
