@@ -8,7 +8,7 @@ do_start()
 {
 	dnsmasq_start
 	ipset_create
-	[ "$SAVE_TABLE" = "1" ] && ipset_restore
+	[ "$SAVE_IPSET_TABLE" = "1" ] && ipset_restore
 	ip_rule_apply
 	if ip_link_up; then
 		ip_route_interface_apply
