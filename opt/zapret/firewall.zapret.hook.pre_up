@@ -1,0 +1,20 @@
+#!/bin/sh
+
+ZAPRET_BASE=${ZAPRET_BASE:-/opt/zapret}
+ZAPRET_RW=${ZAPRET_RW:-"$ZAPRET_BASE"}
+ZAPRET_CONFIG=${ZAPRET_CONFIG:-"$ZAPRET_RW/config"}
+# shellcheck disable=SC1090
+. "$ZAPRET_CONFIG"
+. "$ZAPRET_BASE/common/base.sh"
+. "$ZAPRET_BASE/common/ipt.sh"
+
+sysctl -w net.netfilter.nf_conntrack_checksum=0
+
+for IFACE_WAN_N in $IFACE_WAN; do
+	ipt_print_op 1 _NDM_MASQ "$IFACE_WAN_N"
+	ipta _NDM_MASQ -t nat -o "$IFACE_WAN_N" -j MASQUERADE
+
+	# There is no _NDM_MASQ for IPv6 by default, but it MIGHT be present if IPv6 support is enabled in the router settings.
+	# If you see _NDM_MASQ when running `ip6tables-save -t nat`, uncomment these lines.
+#	ipt6a _NDM_MASQ -t nat -o "$IFACE_WAN_N" -j MASQUERADE
+done
