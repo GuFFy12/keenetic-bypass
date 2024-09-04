@@ -56,7 +56,7 @@ ip_route_exists()
 {
 	# $1 - route
 	route=${1:-.}
-  ip route list table "$MARK" | grep -q "$route"
+	ip route list table "$MARK" | grep -q "$route"
 }
 
 ip_link_up()
@@ -90,7 +90,7 @@ ip_route_interface_unapply()
 
 ip_rule_exists()
 {
-  ip rule list | grep -q "lookup $MARK"
+	ip rule list | grep -q "lookup $MARK"
 }
 
 ip_rule_apply()
@@ -105,7 +105,7 @@ ip_rule_unapply()
 
 ipset_exists()
 {
-  [ -n "$(ipset -q list "$IPSET_TABLE")" ]
+	[ -n "$(ipset -q list "$IPSET_TABLE")" ]
 }
 
 ipset_create()
