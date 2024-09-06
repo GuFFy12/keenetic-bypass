@@ -4,8 +4,7 @@ SCRIPT=$(readlink -f "$0")
 DNSMASQ_ROUTING_BASE=$(dirname "$SCRIPT")
 . "$DNSMASQ_ROUTING_BASE/functions.sh"
 
-do_start()
-{
+do_start() {
 	dnsmasq_start
 	ipset_create
 	[ "$SAVE_IPSET_TABLE" = "1" ] && ipset_restore
@@ -18,8 +17,7 @@ do_start()
 	iptables_apply_rules
 }
 
-do_stop()
-{
+do_stop() {
 	iptables_unapply_rules
 	ip_route_interface_unapply
 	ip_route_blackhole_unapply
@@ -30,36 +28,36 @@ do_stop()
 }
 
 case "$1" in
-	start)
-		do_start
-		;;
+start)
+	do_start
+	;;
 
-	stop)
-		do_stop
-		;;
+stop)
+	do_stop
+	;;
 
-	restart)
-		do_stop
-		do_start
-		;;
+restart)
+	do_stop
+	do_start
+	;;
 
-	save)
-		ipset_save
-		;;
+save)
+	ipset_save
+	;;
 
-	restore)
-		ipset_restore
-		;;
+restore)
+	ipset_restore
+	;;
 
-	flush)
-		ipset_flush
-		;;
+flush)
+	ipset_flush
+	;;
 
-	*)
-		N=/etc/init.d/$NAME
-		echo "Usage: $N {start|stop|restart|save|restore|flush}" >&2
-		exit 1
-		;;
+*)
+	N=/etc/init.d/$NAME
+	echo "Usage: $N {start|stop|restart|save|restore|flush}" >&2
+	exit 1
+	;;
 esac
 
 exit 0
