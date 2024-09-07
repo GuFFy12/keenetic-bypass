@@ -6,6 +6,6 @@
 ZAPRET_BASE=${ZAPRET_BASE:-/opt/zapret}
 SCRIPT=${SCRIPT:-$ZAPRET_BASE/init.d/sysv/zapret}
 
-[ -n "$(pgrep -f "$ZAPRET_BASE")" ] || exit 0
+pgrep -f "$ZAPRET_BASE" >/dev/null 2>&1 || exit 0
 
 $SCRIPT start-fw >/dev/null
