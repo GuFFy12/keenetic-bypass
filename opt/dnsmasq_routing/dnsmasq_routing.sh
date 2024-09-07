@@ -7,22 +7,17 @@ DNSMASQ_ROUTING_BASE=$(dirname "$SCRIPT")
 do_start() {
 	dnsmasq_start
 	ipset_create
-	[ "$SAVE_IPSET_TABLE" = "1" ] && ipset_restore
-	ip_rule_apply
-	if ip_link_up; then
-		ip_route_interface_apply
-	elif [ "$KILL_SWITCH" = "1" ]; then
-		ip_route_blackhole_apply
-	fi
+	[ "$IPSET_TABLE_SAVE" = "1" ] && ipset_restore
 	iptables_apply_rules
+	ip_rule_apply
+	ip_route_interface_apply
+	[ "$KILL_SWITCH" = "1" ] && ip_route_blackhole_apply
 }
 
 do_stop() {
-	iptables_unapply_rules
-	ip_route_interface_unapply
-	ip_route_blackhole_unapply
 	ip_rule_unapply
-	[ "$SAVE_IPSET_TABLE" = "1" ] && ipset_save
+	iptables_unapply_rules
+	[ "$IPSET_TABLE_SAVE" = "1" ] && ipset_save
 	ipset_destroy
 	dnsmasq_stop
 }

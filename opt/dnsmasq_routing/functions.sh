@@ -3,7 +3,7 @@ DNSMASQ_ROUTING_CONF_FILE=${DNSMASQ_ROUTING_CONF_FILE:-"$DNSMASQ_ROUTING_BASE/dn
 . "$DNSMASQ_ROUTING_CONF_FILE"
 DNSMASQ_CONF_FILE=${DNSMASQ_CONF_FILE:-"$DNSMASQ_ROUTING_BASE/dnsmasq.conf"}
 DNSMASQ_PID_FILE=${DNSMASQ_PID_FILE:-/opt/var/run/dnsmasq-5300.pid}
-IPSET_RULES_FILE=${IPSET_RULES_FILE:-"$DNSMASQ_ROUTING_BASE/ipset_$IPSET_TABLE.rules"}
+IPSET_TABLE_RULES_FILE=${IPSET_TABLE_RULES_FILE:-"$DNSMASQ_ROUTING_BASE/ipset_$IPSET_TABLE.rules"}
 
 on_off_function() {
 	# $1 : function name on
@@ -49,16 +49,24 @@ ip_route_exists() {
 	ip route list table "$MARK" | grep -q "$ip_route"
 }
 
+ip_route_blackhole_exists() {
+	ip_route_exists "blackhole default"
+}
+
+ip_route_dev_exists() {
+	ip_route_exists "default dev $INTERFACE"
+}
+
 ip_link_up() {
 	[ -n "$(ip link show "$INTERFACE" up)" ]
 }
 
 ip_route_blackhole_apply() {
-	ip_route_exists "blackhole default" || ip route add blackhole default table "$MARK"
+	ip_route_exists || ip route add blackhole default table "$MARK"
 }
 
 ip_route_blackhole_unapply() {
-	ip_route_exists "blackhole default" && ip route del blackhole default table "$MARK"
+	ip_route_blackhole_exists && ip route del blackhole default table "$MARK"
 }
 
 ip_route_interface_apply() {
@@ -68,13 +76,13 @@ ip_route_interface_apply() {
 }
 
 ip_route_interface_unapply() {
-	if ip_link_up && ip_route_exists; then
+	if ip_link_up && ip_route_dev_exists; then
 		ip route del default dev "$INTERFACE" table "$MARK"
 	fi
 }
 
 ip_rule_exists() {
-	ip rule list | grep -q "lookup $MARK"
+	ip rule list | grep -q "from all fwmark $(printf "0x%x" "$MARK") lookup $MARK"
 }
 
 ip_rule_apply() {
@@ -86,7 +94,7 @@ ip_rule_unapply() {
 }
 
 ipset_rules_file_exists() {
-	[ -f "$IPSET_RULES_FILE" ]
+	[ -f "$IPSET_TABLE_RULES_FILE" ]
 }
 
 ipset_exists() {
@@ -94,7 +102,7 @@ ipset_exists() {
 }
 
 ipset_create() {
-	ipset_exists || ipset create "$IPSET_TABLE" hash:ip timeout "$IPSET_TIMEOUT"
+	ipset_exists || ipset create "$IPSET_TABLE" hash:ip timeout "$IPSET_TABLE_TIMEOUT"
 }
 
 ipset_destroy() {
@@ -102,12 +110,12 @@ ipset_destroy() {
 }
 
 ipset_save() {
-	ipset_exists && ipset save "$IPSET_TABLE" | tail -n +2 >"$IPSET_RULES_FILE"
+	ipset_exists && ipset save "$IPSET_TABLE" | tail -n +2 >"$IPSET_TABLE_RULES_FILE"
 }
 
 ipset_restore() {
 	if ipset_exists && ipset_rules_file_exists; then
-		ipset restore -exist <"$IPSET_RULES_FILE"
+		ipset restore -exist <"$IPSET_TABLE_RULES_FILE"
 	fi
 }
 
