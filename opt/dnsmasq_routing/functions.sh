@@ -35,7 +35,7 @@ ipset_create() {
 
 ipset_destroy() {
 	if iptables_rules_exists; then
-		echo Cannot destroy ipset: iptables rules exist >&2
+		echo "Cannot destroy ipset: iptables rules exist" >&2
 		return 1
 	fi
 	ipset_exists && ipset destroy "$IPSET_TABLE"
@@ -43,7 +43,7 @@ ipset_destroy() {
 
 ipset_flush() {
 	if ! ipset_exists; then
-		echo Cannot flush ipset: ipset does not exist >&2
+		echo "Cannot flush ipset: ipset does not exist" >&2
 		return 1
 	fi
 	ipset flush "$IPSET_TABLE"
@@ -51,7 +51,7 @@ ipset_flush() {
 
 ipset_save() {
 	if ! ipset_exists; then
-		echo Cannot save ipset: ipset does not exist >&2
+		echo "Cannot save ipset: ipset does not exist" >&2
 		return 1
 	fi
 	ipset save "$IPSET_TABLE" | tail -n +2 >"$IPSET_TABLE_RULES_FILE"
@@ -59,7 +59,7 @@ ipset_save() {
 
 ipset_restore() {
 	if ! ipset_exists; then
-		echo Cannot restore ipset: ipset does not exist >&2
+		echo "Cannot restore ipset: ipset does not exist" >&2
 		return 1
 	fi
 	ipset_rules_file_exists && ipset restore -exist <"$IPSET_TABLE_RULES_FILE"
@@ -86,7 +86,7 @@ iptables_rule_delete() {
 
 iptables_apply_rules() {
 	if ! ipset_exists; then
-		echo Cannot apply iptables rules: ipset does not exist >&2
+		echo "Cannot apply iptables rules: ipset does not exist" >&2
 		return 1
 	fi
 	iptables_rule_add "$IPTABLES_RULE_SET_MARK"
@@ -136,7 +136,7 @@ ip_route_blackhole_unapply() {
 
 ip_route_interface_apply() {
 	if ! ip_link_up; then
-		echo Cannot apply ip route: interface is down >&2
+		echo "Cannot apply ip route: interface is down" >&2
 		return 1
 	fi
 	ip_route_exists || ip route add default dev "$INTERFACE" table "$MARK"

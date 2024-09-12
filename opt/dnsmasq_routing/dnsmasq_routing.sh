@@ -49,8 +49,7 @@ flush)
 	;;
 
 *)
-	N=/etc/init.d/$NAME
-	echo "Usage: $N {start|stop|restart|save|restore|flush}" >&2
+	echo "Usage: $SCRIPT {start|stop|restart|save|restore|flush}" >&2
 	exit 1
 	;;
 esac
