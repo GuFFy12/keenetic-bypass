@@ -21,8 +21,10 @@ opkg install coreutils-sort curl git-http grep gzip ipset iptables kmod_ndms xta
   - Пример списка доменов:
 
   ```
+  discord.media
   chatgpt.com
-  gemini.google.com
+  openai.com
+  oaiusercontent.com
   github.com
   githubusercontent.com
   ```
