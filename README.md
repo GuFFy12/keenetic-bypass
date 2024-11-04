@@ -1,25 +1,37 @@
-# Установка и настройка обхода блокировок с использованием Zapret + Dnsmasq
+# Установка и настройка обхода блокировок с использованием Zapret и Dnsmasq
 
 ## Требования
 
-- Keenetic OS версии 4.0 или выше
-- Установленный Entware
+- [Keenetic OS](https://help.keenetic.com/hc/ru/articles/115000990005) версии 4.0 или выше
+- Установленный [Entware](https://help.keenetic.com/hc/ru/articles/360021214160)
 
 ## Шаги установки
 
-### 1. Установка необходимых пакетов через Entware
+### 1. Установка необходимых компонентов
 
+Выполните поочередно следующие команды:
 ```bash
-opkg install coreutils-sort curl git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy dnsmasq
+opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
+```
+```bash
+git clone --depth=1 https://github.com/bol-van/zapret.git /opt/zapret/
+```
+```bash
+/opt/zapret/install_bin.sh
+```
+```bash
+git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git /opt/tmp/keenetic-bypass/
+```
+```bash
+find /opt/tmp/keenetic-bypass/opt/ -type f -exec bash -c 'dest="/opt/${1#/opt/tmp/keenetic-bypass/opt/}"; if [ -e "$dest" ]; then echo "File $dest already exists"; else mkdir -p "$(dirname "$dest")" && cp "$1" "$dest"; fi' _ {} \;
 ```
 
-### 2. Настройка Keenetic
+### 2. Настройки в веб-панели Keenetic
 
-- **Socks-прокси:** Включите и настройте Socks-прокси в веб-интерфейсе Keenetic.
-- **HTTP DNS:** Настройте пользовательский HTTP DNS сервер.
-- **Записи DNS:** Создайте записи DNS на адресе `192.168.1.1:5300` для доменов, доступ к которым блокируется без использования прокси.
-  - Пример списка доменов:
-
+- Настройте и включите выходной узел [VPN](https://help.keenetic.com/hc/ru/articles/115005342025) или [Proxy](https://help.keenetic.com/hc/ru/articles/7474374790300).
+- Настройте пользовательский [DNS-over-HTTPS](https://help.keenetic.com/hc/ru/articles/360007687159).
+- Создайте записи DNS на адресе `192.168.1.1:5300` для доменов, доступ к которым блокируется без использования прокси.
+- Пример списка доменов:
   ```
   chatgpt.com
   openai.com
@@ -28,59 +40,36 @@ opkg install coreutils-sort curl git-http grep gzip ipset iptables kmod_ndms xta
   githubusercontent.com
   ```
 
-### 3. Установка скриптов и конфигурационных файлов
-
-- Скачайте Zapret:
-
-  ```bash
-  cd /opt/
-  git clone --depth=1 https://github.com/bol-van/zapret.git
-  ```
-
-- Скопируйте все файлы из репозитория в корень `/opt` с заменой существующих (вручную или через FTP/веб-интерфейс).
-- Создайте символические ссылки на скрипты:
-
-  ```bash
-  ln -s /opt/zapret/init.d/sysv/zapret /opt/etc/init.d/S52zapret
-  ln -s /opt/etc/dnsmasq_routing.sh /opt/etc/init.d/S53dnsmasq_routing
-  ```
-
-- Выполните первоначальную настройку:
-
-  ```bash
-  cd /opt/zapret/
-  sh install_easy.sh
-  ```
-
 ## Настройка конфигурационных файлов
 
-### 1. Конфигурация zapret
+### 1. Конфигурация Zapret
 
-- Откройте и отредактируйте файл конфигурации `zapret`, используя инструкцию из оригинального репозитория.
+- Файл `config` уже настроен. Подгоните его под свои нужды с учетом оригинальной документации [zapret](https://github.com/bol-van/zapret).
 - Установите переменную `IFACE_WAN` на интерфейс `wan`, который использует внешний IP-адрес. Чтобы узнать его, выполните команду:
-
   ```bash
   ip addr
   ```
+- Опционально обновите списки доменов `zapret-hosts.txt.gz` и `zapret-hosts-user.txt`.
 
-### 2. Конфигурация dnsmasq
+### 2. Конфигурация Dnsmasq
 
-- В параметре `server` укажите ваш внутренний HTTP DNS. Чтобы его получить, выполните команду:
-
+- Файл `dnsmasq.conf` уже настроен. Подгоните его под свои нужды с учетом оригинальной документации [dnsmasq](https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html).
+- Установите переменную `server` на `ip:port`, который использует ваш DNS-over-HTTPS. Чтобы его получить, выполните команду:
   ```bash
   cat /tmp/ndnproxymain.stat
   ```
 
-### 3. Конфигурация dnsmasq_routing
+### 3. Конфигурация маршрутизации Dnsmasq
 
-- **KILL_SWITCH** - если установлено в `1`, при отключении VPN или прокси трафик не будет направляться в сеть.
-- **IPSET_TABLE_SAVE** - если установлено в `1`, таблица с IP-адресами будет сохранена при перезагрузке.
-- **IPSET_TABLE** - задайте имя таблицы IPSET (например, `blocklist`).
-- **IPSET_TABLE_TIMEOUT** - задайте тайм-аут для записей в таблице (например, `0` для неограниченного времени).
-- **INTERFACE** - укажите интерфейс (например, `t2s_br0`).
-- **INTERFACE_SUBNET** - укажите подсеть интерфейса (например, `172.20.12.1/32`).
-- **MARK** - задайте маркер (например, `1001`).
+- Файл `dnsmasq_routing.conf` уже настроен. Подгоните его под свои нужды:
+  - **KILL_SWITCH** - если установлено в `1`, при отключении VPN или прокси трафик не будет направляться в сеть.
+  - **IPSET_TABLE_SAVE** - если установлено в `1`, таблица с IP-адресами будет сохранена при перезагрузке.
+  - **IPSET_TABLE** - имя таблицы ipset.
+  - **IPSET_TABLE_TIMEOUT** - тайм-аут для записей в таблице (`0` для неограниченного времени).
+  - **INTERFACE** - интерфейс выходного узла VPN/Proxy (`ip addr`).
+  - **INTERFACE_SUBNET** - подсеть интерфейса выходного узла VPN/Proxy (`ip addr`).
+  - **MARK** - маркер, используемый в iptables.
 
-## Дополнительные настройки
+### 4. Настройка WireGuard на роутере в качестве сервера для обхода блокировок из любой точки России
 
-- Обратите внимание на другие возможные настройки в конфигурационных файлах, которые могут понадобиться для специфичных сценариев. Рассмотрите предоставление примеров этих сценариев для большей ясности.
+ - Подробности: [WireGuard VPN](https://help.keenetic.com/hc/ru/articles/360010592379).
