@@ -23,7 +23,7 @@ git clone --depth=1 https://github.com/bol-van/zapret.git /opt/zapret/
 git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git /opt/tmp/keenetic-bypass/
 ```
 ```bash
-find /opt/tmp/keenetic-bypass/opt/ -type f -exec bash -c 'dest="/opt/${1#/opt/tmp/keenetic-bypass/opt/}"; if [ -e "$dest" ]; then echo "File $dest already exists"; else mkdir -p "$(dirname "$dest")" && cp "$1" "$dest"; fi' _ {} \;
+find /opt/tmp/keenetic-bypass/opt/ -type f -exec ash -c 'dest="/opt/${1#/opt/tmp/keenetic-bypass/opt/}"; if [ -e "$dest" ]; then echo "File $dest already exists"; else mkdir -p "$(dirname "$dest")" && cp "$1" "$dest"; fi' _ {} \;
 ```
 
 ### 2. Настройки в веб-панели Keenetic
