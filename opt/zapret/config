@@ -71,7 +71,7 @@ TPWS_OPT="
 NFQWS_ENABLE=1
 # redirect outgoing traffic with connbytes limiter applied in both directions.
 NFQWS_PORTS_TCP=80,443
-NFQWS_PORTS_UDP=443,50000-65535
+NFQWS_PORTS_UDP=443
 # PKT_OUT means connbytes dir original
 # PKT_IN means connbytes dir reply
 # this is --dpi-desync-cutoff=nX kernel mode implementation for linux. it saves a lot of CPU.
@@ -90,7 +90,7 @@ NFQWS_UDP_PKT_IN=0
 # <HOSTLIST_NOAUTO> appends ipset/zapret-hosts-auto.txt as normal list
 NFQWS_OPT="
 --filter-tcp=80,443 --dpi-desync=fake,split2 --dpi-desync-ttl=6 --dpi-desync-fooling=md5sig,badsum --dpi-desync-fake-tls=/opt/zapret/files/fake/tls_clienthello_www_google_com.bin <HOSTLIST> --new
---filter-udp=443,50000-65535 --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-any-protocol --dpi-desync-fake-quic=/opt/zapret/files/fake/quic_initial_www_google_com.bin <HOSTLIST>
+--filter-udp=443 --dpi-desync=fake --dpi-desync-repeats=6 --dpi-desync-fake-quic=/opt/zapret/files/fake/quic_initial_www_google_com.bin <HOSTLIST>
 "
 
 # none,ipset,hostlist,autohostlist
