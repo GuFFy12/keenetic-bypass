@@ -80,7 +80,7 @@ find /opt/tmp/keenetic-bypass/opt/ -type f -exec sh -c 'dest="/opt/${1#/opt/tmp/
 При перезагрузке маршрутизатора скрипты запускаться автоматически. Однако, если вы хотите запустить их вручную, выполните следующие команды:
 - Для запуска Zapret:
   ```bash
-  /opt/zapret/init.d/sysv/zapret restart
+  /opt/zapret/init.d/sysv/zapret_keenetic.sh restart
   ```
 - Для запуска Dnsmasq Routing:
   ```bash
