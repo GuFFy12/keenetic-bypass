@@ -1,7 +1,7 @@
 #!/bin/sh
 
-SCRIPT=$(readlink -f "$0")
-DNSMASQ_ROUTING_BASE=$(dirname "$SCRIPT")
+SCRIPT="$(readlink -f "$0")"
+DNSMASQ_ROUTING_BASE="$(dirname "$SCRIPT")"
 . "$DNSMASQ_ROUTING_BASE/functions.sh"
 
 do_start() {

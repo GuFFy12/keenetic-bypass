@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DNSMASQ_ROUTING_BASE=${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}
+DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
 . "$DNSMASQ_ROUTING_BASE/functions.sh"
 
 [ "$1" = "hook" ] || exit 0
