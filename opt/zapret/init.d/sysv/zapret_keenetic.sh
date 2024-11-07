@@ -27,18 +27,18 @@ do_stop() {
 case "$1" in
 start)
 	do_start
-	ZAPRET_SCRIPT start
+	$ZAPRET_SCRIPT start
 	;;
 
 stop)
-	ZAPRET_SCRIPT stop
+	$ZAPRET_SCRIPT stop
 	do_stop
 	;;
 
 restart)
 	do_start
-	ZAPRET_SCRIPT start
-	ZAPRET_SCRIPT stop
+	$ZAPRET_SCRIPT stop
+	$ZAPRET_SCRIPT start
 	do_stop
 	;;
 
