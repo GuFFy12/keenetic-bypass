@@ -6,7 +6,7 @@ KERNEL_VERSION="$(uname -r)"
 
 load_kernel_module() {
 	if ! lsmod | grep -q "$1" && ! insmod "/lib/modules/$KERNEL_VERSION/$1.ko"; then
-			exit 1
+		exit 1
 	fi
 }
 
