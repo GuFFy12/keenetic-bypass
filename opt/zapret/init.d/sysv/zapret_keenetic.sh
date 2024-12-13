@@ -1,4 +1,6 @@
 #!/bin/sh
+set -euo pipefail
+IFS=$'\n\t'
 
 SCRIPT="$(readlink -f "$0")"
 ZAPRET_SCRIPT="$(dirname "$SCRIPT")/zapret"

@@ -12,22 +12,17 @@
 Выполните поочередно следующие команды:
 
 ```bash
-opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
+opkg update && opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
 ```
 
 ```bash
-git clone --depth=1 https://github.com/bol-van/zapret.git /opt/zapret/
-```
-
-```bash
+curl -L https://github.com/bol-van/zapret/releases/download/v69.6/zapret-v69.6.tar.gz | tar -xz -C /opt/ && mv /opt/zapret-v69.6/ /opt/zapret/
 /opt/zapret/install_bin.sh
+/opt/zapret/ipset/get_config.sh
 ```
 
 ```bash
 git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git /opt/tmp/keenetic-bypass/
-```
-
-```bash
 find /opt/tmp/keenetic-bypass/opt/ -type f -exec sh -c 'dest="/opt/${1#/opt/tmp/keenetic-bypass/opt/}"; if [ -e "$dest" ]; then echo "File $dest already exists"; else mkdir -p "$(dirname "$dest")" && cp "$1" "$dest"; fi' _ {} \;
 ```
 
@@ -80,13 +75,13 @@ find /opt/tmp/keenetic-bypass/opt/ -type f -exec sh -c 'dest="/opt/${1#/opt/tmp/
   обрабатывались непосредственно устройством.
 
 - Файл `/opt/dnsmasq_routing/dnsmasq_routing.conf` уже настроен. Подгоните его под свои нужды:
-	- **KILL_SWITCH** - если установлено в `1`, при отключении VPN или прокси трафик не будет направляться в сеть.
-	- **IPSET_TABLE_SAVE** - если установлено в `1`, таблица с IP-адресами будет сохранена при перезагрузке.
-	- **IPSET_TABLE** - имя таблицы ipset.
-	- **IPSET_TABLE_TIMEOUT** - тайм-аут для записей в таблице (`0` для неограниченного времени).
-	- **INTERFACE** - интерфейс выходного узла VPN/Proxy (выполните `ip addr`).
-	- **INTERFACE_SUBNET** - подсеть интерфейса выходного узла VPN/Proxy (выполните `ip addr`).
-	- **MARK** - маркер, используемый в iptables.
+  - **KILL_SWITCH** - если установлено в `1`, при отключении VPN или прокси трафик не будет направляться в сеть.
+  - **IPSET_TABLE_SAVE** - если установлено в `1`, таблица с IP-адресами будет сохранена при перезагрузке.
+  - **IPSET_TABLE** - имя таблицы ipset.
+  - **IPSET_TABLE_TIMEOUT** - тайм-аут для записей в таблице (`0` для неограниченного времени).
+  - **INTERFACE** - интерфейс выходного узла VPN/Proxy (выполните `ip addr`).
+  - **INTERFACE_SUBNET** - подсеть интерфейса выходного узла VPN/Proxy (выполните `ip addr`).
+  - **MARK** - маркер, используемый в iptables.
 
 ## Запуск скриптов
 
