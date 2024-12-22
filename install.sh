@@ -49,9 +49,8 @@ done
 
 replace_config_value "/opt/zapret/config" "IFACE_WAN" "$(ip route | grep default | awk '{print $5}')"
 replace_config_value "/opt/dnsmasq_routing/dnsmasq.conf" "server" "$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
-# FIXME
-# replace_config_value "/opt/dnsmasq_routing/dnsmasq_routing.conf" "INTERFACE" "$()"
-# replace_config_value "/opt/dnsmasq_routing/dnsmasq_routing.conf" "INTERFACE_SUBNET" "$()"
+replace_config_value "/opt/dnsmasq_routing/dnsmasq_routing.conf" "INTERFACE" "t2s0"
+replace_config_value "/opt/dnsmasq_routing/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
 
 /opt/zapret/init.d/sysv/zapret_keenetic.sh restart
 /opt/dnsmasq_routing/dnsmasq_routing.sh restart
