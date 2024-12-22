@@ -103,7 +103,7 @@ iptables_unapply_rules() {
 }
 
 ip_rule_exists() {
-	ip rule list | grep -q "from all fwmark $(printf "0x%x" "$MARK") lookup $MARK"
+	ip rule list | grep -qw "from all fwmark $(printf "0x%x" "$MARK") lookup $MARK"
 }
 
 ip_rule_apply() {
@@ -115,7 +115,7 @@ ip_rule_unapply() {
 }
 
 ip_route_exists() {
-	ip route list table "$MARK" | grep -q "${1:-.}"
+	ip route list table "$MARK" | grep -qw "${1:-.}"
 }
 
 ip_route_blackhole_exists() {

@@ -7,9 +7,9 @@ ZAPRET_SCRIPT="$(dirname "$SCRIPT")/zapret"
 KERNEL_VERSION="$(uname -r)"
 
 load_kernel_module() {
-	if ! lsmod | grep -q "$1" && ! insmod "/lib/modules/$KERNEL_VERSION/$1.ko"; then
-		exit 1
-	fi
+	if lsmod | grep -qw "^$1"; then
+		insmod "/lib/modules/$KERNEL_VERSION/$1.ko"
+    fi
 }
 
 do_start() {
@@ -30,6 +30,11 @@ do_stop() {
 	sysctl -w net.netfilter.nf_conntrack_checksum=1
 }
 
+if [ $# -eq 0 ]; then
+	echo "Usage: $SCRIPT {start|stop|restart}" >&2
+	exit 1
+fi
+
 case "$1" in
 start)
 	do_start
@@ -42,11 +47,6 @@ stop)
 restart)
 	do_stop
 	do_start
-	;;
-
-*)
-	echo "Usage: $SCRIPT {start|stop|restart}" >&2
-	exit 1
 	;;
 esac
 

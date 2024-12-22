@@ -24,6 +24,11 @@ do_stop() {
 	dnsmasq_stop
 }
 
+if [ $# -eq 0 ]; then
+	echo "Usage: $SCRIPT {start|stop|restart|save|restore|flush}" >&2
+	exit 1
+fi
+
 case "$1" in
 start)
 	do_start
@@ -48,11 +53,6 @@ restore)
 
 flush)
 	ipset_flush
-	;;
-
-*)
-	echo "Usage: $SCRIPT {start|stop|restart|save|restore|flush}" >&2
-	exit 1
 	;;
 esac
 

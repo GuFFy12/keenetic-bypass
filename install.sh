@@ -27,6 +27,7 @@ fi
 
 opkg update && opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
 
+rm -r /opt/zapret
 curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/
 mv "/opt/zapret-$ZAPRET_VERSION/" /opt/zapret/
 
@@ -34,14 +35,7 @@ rm -r /opt/tmp/keenetic-bypass/
 git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git /opt/tmp/keenetic-bypass/
 find /opt/tmp/keenetic-bypass/opt/ -type f | while read -r file; do
     dest="/opt/${file#/opt/tmp/keenetic-bypass/opt/}"
-
-    if [ -e "$dest" ]; then
-        backup="${dest}.bak"
-        echo "File $dest already exists. Creating backup: $backup"
-    else
-        mkdir -p "$(dirname "$dest")"
-    fi
-
+    mkdir -p "$(dirname "$dest")"
     cp "$file" "$dest"
 done
 
