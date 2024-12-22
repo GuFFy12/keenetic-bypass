@@ -5,7 +5,7 @@ IFS=$'\n\t'
 ZAPRET_VERSION="v69.8"
 
 replace_config_value() {
-    sed -i "s/^$2=.*/$2=$3/" "$1"
+    sed -i "s|^$2=.*|$2=$3|" "$1"
 }
 
 if ! command -v ndmc; then
@@ -30,6 +30,7 @@ opkg update && opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset
 curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/
 mv "/opt/zapret-$ZAPRET_VERSION/" /opt/zapret/
 
+rm -r /opt/tmp/keenetic-bypass/
 git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git /opt/tmp/keenetic-bypass/
 find /opt/tmp/keenetic-bypass/opt/ -type f | while read -r file; do
     dest="/opt/${file#/opt/tmp/keenetic-bypass/opt/}"
