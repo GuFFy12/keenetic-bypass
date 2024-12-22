@@ -1,4 +1,6 @@
 #!/bin/sh
+set -euo pipefail
+IFS=$'\n\t'
 
 [ "$type" = "iptables" ] || exit 0
 [ "$table" = "mangle" ] || exit 0

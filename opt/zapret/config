@@ -111,7 +111,7 @@ FLOWOFFLOAD=donttouch
 # it's possible to specify multiple interfaces like this : IFACE_LAN="eth0 eth1 eth2"
 # if IFACE_WAN6 is not defined it take the value of IFACE_WAN
 #IFACE_LAN=eth0
-IFACE_WAN=eth3
+IFACE_WAN=eth0
 #IFACE_WAN6="ipsec0 wireguard0 he_net"
 
 # should start/stop command of init scripts apply firewall rules ?
