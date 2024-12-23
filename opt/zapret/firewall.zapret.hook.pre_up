@@ -9,9 +9,9 @@ ZAPRET_CONFIG="${ZAPRET_CONFIG:-"$ZAPRET_RW/config"}"
 
 ipt_print_op() {
 	if [ "$1" = "1" ]; then
-		echo "Inserting ip$4tables rule for $3 : $2"
+		echo "Inserting iptables rule for $3 : $2"
 	else
-		echo "Deleting ip$4tables rule for $3 : $2"
+		echo "Deleting iptables rule for $3 : $2"
 	fi
 }
 
