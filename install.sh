@@ -4,6 +4,9 @@ IFS=$'\n\t'
 
 ZAPRET_VERSION="v69.8"
 
+ZAPRET_SCRIPT="/opt/zapret/init.d/sysv/zapret_keenetic.sh"
+DNSMASQ_ROUTING_SCRIPT="/opt/dnsmasq_routing/dnsmasq_routing.sh"
+
 replace_config_value() {
     sed -i "s|^$2=.*|$2=$3|" "$1"
 }
@@ -27,17 +30,17 @@ if [ -z "$NDM_VERSION" ]; then
     exit 1
 fi
 
-if [ "$(echo "$NDM_VERSION < 4.0.0" | bc)" -eq 1 ]; then
+if [ "${NDM_VERSION%%.*}" -lt 4 ]; then
     echo "Version $NDM_VERSION is less than 4.0.0" >&2
     exit 1
 fi
 
-/opt/zapret/init.d/sysv/zapret_keenetic.sh stop
+[ -f "$ZAPRET_SCRIPT" ] && "$ZAPRET_SCRIPT" stop
 rm -r /opt/zapret
 curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/
 mv "/opt/zapret-$ZAPRET_VERSION/" /opt/zapret/
 
-/opt/dnsmasq_routing/dnsmasq_routing.sh stop
+[ -f "$DNSMASQ_ROUTING_SCRIPT" ] && "$DNSMASQ_ROUTING_SCRIPT" stop
 rm -r /opt/tmp/keenetic-bypass/
 git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git /opt/tmp/keenetic-bypass/
 find /opt/tmp/keenetic-bypass/opt/ -type f | while read -r file; do
