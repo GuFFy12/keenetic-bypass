@@ -49,7 +49,7 @@ done
 /opt/zapret/ipset/get_config.sh
 
 replace_config_value "/opt/zapret/config" "IFACE_WAN" "$(ip route | grep -w ^default | awk '{print $5}')"
-replace_config_value "/opt/dnsmasq_routing/dnsmasq.conf" "server" "$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
+replace_config_value "/opt/dnsmasq_routing/dnsmasq.conf" "server" "127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
 replace_config_value "/opt/dnsmasq_routing/dnsmasq_routing.conf" "INTERFACE" "t2s0"
 replace_config_value "/opt/dnsmasq_routing/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
 
