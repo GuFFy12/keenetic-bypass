@@ -10,4 +10,4 @@ SCRIPT="${SCRIPT:-"$ZAPRET_BASE/init.d/sysv/zapret"}"
 
 pgrep -f "$ZAPRET_BASE" >/dev/null || exit 0
 
-$SCRIPT start-fw >/dev/null
+"$SCRIPT" start-fw >/dev/null
