@@ -32,10 +32,12 @@ if [ "$(echo "$NDM_VERSION < 4.0.0" | bc)" -eq 1 ]; then
     exit 1
 fi
 
+/opt/zapret/init.d/sysv/zapret_keenetic.sh stop
 rm -r /opt/zapret
 curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/
 mv "/opt/zapret-$ZAPRET_VERSION/" /opt/zapret/
 
+/opt/dnsmasq_routing/dnsmasq_routing.sh stop
 rm -r /opt/tmp/keenetic-bypass/
 git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git /opt/tmp/keenetic-bypass/
 find /opt/tmp/keenetic-bypass/opt/ -type f | while read -r file; do
