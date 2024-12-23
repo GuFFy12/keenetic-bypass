@@ -35,10 +35,7 @@ usage() {
 	exit 1
 }
 
-if [ $# -ne 1 ]; then
-	usage
-fi
-
+[ $# -ne 1 ] && usage
 case "$1" in
 start)
 	do_start

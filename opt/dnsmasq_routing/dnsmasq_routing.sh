@@ -24,11 +24,12 @@ do_stop() {
 	dnsmasq_stop
 }
 
-if [ $# -eq 0 ]; then
+usage() {
 	echo "Usage: $SCRIPT {start|stop|restart|save|restore|flush}" >&2
 	exit 1
-fi
+}
 
+[ $# -ne 1 ] && usage
 case "$1" in
 start)
 	do_start
@@ -53,6 +54,10 @@ restore)
 
 flush)
 	ipset_flush
+	;;
+
+*)
+	usage
 	;;
 esac
 
