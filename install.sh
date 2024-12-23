@@ -37,6 +37,7 @@ if [ -z "$NDM_VERSION" ]; then
     exit 1
 fi
 
+# ndm/iflayerchanged.d does not exist in versions below 4.0.0
 if [ "${NDM_VERSION%%.*}" -lt 4 ]; then
     echo "Version $NDM_VERSION is less than 4.0.0" >&2
     exit 1
@@ -61,10 +62,10 @@ done
 "$ZAPRET_BASE/install_bin.sh"
 "$ZAPRET_BASE/ipset/get_config.sh"
 
-replace_config_value "/opt/zapret/config" "IFACE_WAN" "$(ip route | grep -w ^default | awk '{print $5}')"
-replace_config_value "/opt/dnsmasq_routing/dnsmasq.conf" "server" "127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
-replace_config_value "/opt/dnsmasq_routing/dnsmasq_routing.conf" "INTERFACE" "t2s0"
-replace_config_value "/opt/dnsmasq_routing/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
+replace_config_value "$ZAPRET_BASE/config" "IFACE_WAN" "$(ip route | grep -w ^default | awk '{print $5}')"
+replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq.conf" "server" "127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
+replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE" "t2s0"
+replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
 
 "$ZAPRET_SCRIPT" restart
 "$DNSMASQ_ROUTING_SCRIPT" restart
