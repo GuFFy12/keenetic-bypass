@@ -14,7 +14,7 @@ dnsmasq_pid_file_exists() {
 }
 
 dnsmasq_exists() {
-	dnsmasq_pid_file_exists && kill -0 "$(cat "$DNSMASQ_PID_FILE")" >/dev/null 2>&1
+	dnsmasq_pid_file_exists && kill -0 "$(cat "$DNSMASQ_PID_FILE")"
 }
 
 dnsmasq_start() {
@@ -30,7 +30,7 @@ ipset_rules_file_exists() {
 }
 
 ipset_exists() {
-	ipset -q list "$IPSET_TABLE" >/dev/null 2>&1
+	ipset -q list "$IPSET_TABLE" >/dev/null
 }
 
 ipset_create() {
@@ -115,7 +115,7 @@ ip_rule_unapply() {
 }
 
 ip_route_exists() {
-	ip route list table "$MARK" | grep -qw "${1:-.}"
+	ip route list table "$MARK" | grep -q "${1:-.}"
 }
 
 ip_route_blackhole_exists() {

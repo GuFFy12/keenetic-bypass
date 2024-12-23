@@ -6,8 +6,18 @@ ZAPRET_BASE="${ZAPRET_BASE:-/opt/zapret}"
 ZAPRET_RW="${ZAPRET_RW:-"$ZAPRET_BASE"}"
 ZAPRET_CONFIG="${ZAPRET_CONFIG:-"$ZAPRET_RW/config"}"
 . "$ZAPRET_CONFIG"
-. "$ZAPRET_BASE/common/base.sh"
-. "$ZAPRET_BASE/common/ipt.sh"
+
+ipt_print_op() {
+	if [ "$1" = "1" ]; then
+		echo "Inserting ip$4tables rule for $3 : $2"
+	else
+		echo "Deleting ip$4tables rule for $3 : $2"
+	fi
+}
+
+ipt_del() {
+	iptables -C "$@" >/dev/null 2>&1 && iptables -D "$@"
+}
 
 # https://ntc.party/t/zapret-whats-new/61/71
 for IFACE_WAN_N in $IFACE_WAN; do

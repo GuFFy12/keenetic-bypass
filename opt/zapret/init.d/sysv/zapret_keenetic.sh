@@ -30,9 +30,13 @@ do_stop() {
 	sysctl -w net.netfilter.nf_conntrack_checksum=1
 }
 
-if [ $# -eq 0 ]; then
+usage() {
 	echo "Usage: $SCRIPT {start|stop|restart}" >&2
 	exit 1
+}
+
+if [ $# -ne 1 ]; then
+	usage
 fi
 
 case "$1" in
@@ -47,6 +51,10 @@ stop)
 restart)
 	do_stop
 	do_start
+	;;
+
+*)
+	usage
 	;;
 esac
 
