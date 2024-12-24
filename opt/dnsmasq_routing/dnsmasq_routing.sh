@@ -1,6 +1,4 @@
 #!/bin/sh
-set -euo pipefail
-IFS=$'\n\t'
 
 SCRIPT="$(readlink -f "$0")"
 DNSMASQ_ROUTING_BASE="$(dirname "$SCRIPT")"

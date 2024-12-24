@@ -1,6 +1,4 @@
 #!/bin/sh
-set -euo pipefail
-IFS=$'\n\t'
 
 DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
 . "$DNSMASQ_ROUTING_BASE/functions.sh"

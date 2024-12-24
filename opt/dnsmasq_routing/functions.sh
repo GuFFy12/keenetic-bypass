@@ -1,6 +1,4 @@
 #!/bin/sh
-set -euo pipefail
-IFS=$'\n\t'
 
 DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
 DNSMASQ_ROUTING_CONF_FILE="${DNSMASQ_ROUTING_CONF_FILE:-"$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf"}"
@@ -115,7 +113,7 @@ ip_rule_unapply() {
 }
 
 ip_route_exists() {
-	ip route list table "$MARK" | grep -q "${1:-.}"
+	ip route list table "$MARK" | grep -q "^${1:-.}"
 }
 
 ip_route_blackhole_exists() {

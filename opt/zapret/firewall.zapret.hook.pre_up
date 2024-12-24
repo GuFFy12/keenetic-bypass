@@ -1,6 +1,4 @@
 #!/bin/sh
-set -euo pipefail
-IFS=$'\n\t'
 
 ZAPRET_BASE="${ZAPRET_BASE:-/opt/zapret}"
 ZAPRET_RW="${ZAPRET_RW:-"$ZAPRET_BASE"}"
