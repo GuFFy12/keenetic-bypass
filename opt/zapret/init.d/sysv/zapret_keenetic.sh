@@ -5,7 +5,7 @@ ZAPRET_SCRIPT="$(dirname "$SCRIPT")/zapret"
 KERNEL_VERSION="$(uname -r)"
 
 load_kernel_module() {
-	if lsmod | grep -qw "^$1"; then
+	if ! lsmod | grep -qw "^$1"; then
 		insmod "/lib/modules/$KERNEL_VERSION/$1.ko"
     fi
 }
