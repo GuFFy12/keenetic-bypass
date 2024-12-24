@@ -54,7 +54,7 @@
   cat /tmp/ndnproxymain.stat
   ```
 
-### 5. Конфигурация Dnsmasq Routing ()`/opt/dnsmasq_routing/dnsmasq_routing.conf`)
+### 5. Конфигурация Dnsmasq Routing (`/opt/dnsmasq_routing/dnsmasq_routing.conf`)
 
 - Устройство отправляет DNS-запрос на маршрутизатор, который с помощью dnsmasq возвращает IP-адрес и добавляет его в ipset.
   Все IP-адреса из ipset перенаправляются через туннель. Для работы системы важно, чтобы все DNS-запросы шли через маршрутизатор.
