@@ -1,4 +1,9 @@
-# Установка и настройка обхода блокировок с использованием Zapret и Dnsmasq-based static routing
+<div align="center">
+
+# Keenetic Bypass
+
+<img src="https://github.com/user-attachments/assets/66087228-edfa-4957-82db-5bd7233f8ab9" alt="logo" width="50%" />
+</div>
 
 ## Требования
 
@@ -14,11 +19,8 @@
   curl -s https://raw.githubusercontent.com/GuFFy12/keenetic-bypass/refs/heads/main/install.sh | sh
   ```
 
+### 2. Конфигурация Zapret ([`/opt/zapret/config`](https://github.com/bol-van/zapret))
 
-### 2. Конфигурация Zapret
-
-- Файл `/opt/zapret/config` уже настроен. Подгоните его под свои нужды с учетом оригинальной
-  документации [zapret](https://github.com/bol-van/zapret).
 - Переменная `IFACE_WAN` установлена автоматически на дефолтный интерфейс `wan`, который использует внешний IP-адрес.
   Чтобы вручную узнать его, выполните команду:
   ```sh
@@ -44,24 +46,18 @@
   githubusercontent.com
   ```
 
-### 4. Конфигурация Dnsmasq
+### 4. Конфигурация Dnsmasq ([`/opt/dnsmasq_routing/dnsmasq.conf`](https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html))
 
-- Файл `/opt/dnsmasq_routing/dnsmasq.conf` уже настроен. Подгоните его под свои нужды с учетом оригинальной
-  документации [dnsmasq](https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html).
 - Переменная `server` установлена автоматически на первый найденный `127.0.0.1:port`, который используется для получения DNS записей.
   Чтобы вручную узнать его, выполните команду:
   ```sh
   cat /tmp/ndnproxymain.stat
   ```
 
-### 5. Конфигурация Dnsmasq Routing
+### 5. Конфигурация Dnsmasq Routing ()`/opt/dnsmasq_routing/dnsmasq_routing.conf`)
 
-- Когда устройство отправляет запрос на получение IP-адреса по доменному имени, запрос поступает на маршрутизатор.
-  Маршрутизатор использует dnsmasq для обработки запроса и возвращает IP-адрес, одновременно добавляя этот IP-адрес в набор ipset.
-  Все IP-адреса, которые входят в указанный набор ipset, перенаправляются через интерфейс туннеля.
-  Для корректной работы этой системы критически важно, чтобы все DNS-запросы направлялись через маршрутизатор,
-  а не обрабатывались непосредственно устройством.
-- Файл `/opt/dnsmasq_routing/dnsmasq_routing.conf` уже настроен. Подгоните его под свои нужды.
+- Устройство отправляет DNS-запрос на маршрутизатор, который с помощью dnsmasq возвращает IP-адрес и добавляет его в ipset.
+  Все IP-адреса из ipset перенаправляются через туннель. Для работы системы важно, чтобы все DNS-запросы шли через маршрутизатор.
 - Переменные `INTERFACE` и `INTERFACE_SUBNET` установлены автоматически на первый найденный туннель в системе если он есть.
   Чтобы вручную узнать параметры туннеля выполните команду:
   ```sh
