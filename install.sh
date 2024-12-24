@@ -26,6 +26,7 @@ if ! command -v opkg >/dev/null; then
     exit 1
 fi
 
+echo Installing packages...
 opkg update && opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
 
 NDM_VERSION="$(ndmc -c show version | grep -w title | head -n 1 | awk '{print $2}' | tr -cd '0-9.')"
@@ -78,4 +79,4 @@ echo Running dnsmasq_routing...
 
 rm_dir "$TMP_DIR"
 
-echo Components have been successfully installed. for further configuration please refer to README.md file
+echo Components have been successfully installed. For further configuration please refer to README.md file!
