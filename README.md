@@ -14,9 +14,8 @@
   curl -s https://raw.githubusercontent.com/GuFFy12/keenetic-bypass/refs/heads/main/install.sh | sh
   ```
 
-## Настройка конфигурационных файлов
 
-### 1. Конфигурация Zapret
+### 2. Конфигурация Zapret
 
 - Файл `/opt/zapret/config` уже настроен. Подгоните его под свои нужды с учетом оригинальной
   документации [zapret](https://github.com/bol-van/zapret).
@@ -30,7 +29,7 @@
   /opt/zapret/ipset/get_config.sh
   ```
 
-### 2. Настройки в веб-панели Keenetic
+### 3. Настройки в веб-панели Keenetic
 
 - Настройте и включите туннель [VPN](https://help.keenetic.com/hc/ru/articles/115005342025)
   или [Proxy](https://help.keenetic.com/hc/ru/articles/7474374790300).
@@ -45,7 +44,7 @@
   githubusercontent.com
   ```
 
-### 3. Конфигурация Dnsmasq
+### 4. Конфигурация Dnsmasq
 
 - Файл `/opt/dnsmasq_routing/dnsmasq.conf` уже настроен. Подгоните его под свои нужды с учетом оригинальной
   документации [dnsmasq](https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html).
@@ -55,7 +54,7 @@
   cat /tmp/ndnproxymain.stat
   ```
 
-### 4. Конфигурация Dnsmasq Routing
+### 5. Конфигурация Dnsmasq Routing
 
 - Когда устройство отправляет запрос на получение IP-адреса по доменному имени, запрос поступает на маршрутизатор.
   Маршрутизатор использует dnsmasq для обработки запроса и возвращает IP-адрес, одновременно добавляя этот IP-адрес в набор ipset.
@@ -76,19 +75,6 @@
   - `INTERFACE` - интерфейс выходного узла туннеля.
   - `INTERFACE_SUBNET` - подсеть интерфейса выходного узла туннеля.
   - `MARK` - маркер, используемый в iptables.
-
-## Запуск скриптов
-
-- При перезагрузке маршрутизатора скрипты запускаться автоматически. Однако, если вы не хотите перезагружать его,
-  выполните следующие команды:
-  - Для запуска Zapret:
-    ```sh
-    /opt/zapret/init.d/sysv/zapret_keenetic.sh restart
-    ```
-  - Для запуска Dnsmasq Routing:
-    ```sh
-      /opt/dnsmasq_routing/dnsmasq_routing.sh restart
-    ```
 
 ## Настройка WireGuard на роутере в качестве сервера для обхода блокировок
 
