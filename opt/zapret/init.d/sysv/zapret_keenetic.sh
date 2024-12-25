@@ -19,11 +19,11 @@ do_start() {
 	# --dpi-desync-fooling=badsum fix
 	sysctl -w net.netfilter.nf_conntrack_checksum=0
 
-	$ZAPRET_SCRIPT start
+	"$ZAPRET_SCRIPT" start
 }
 
 do_stop() {
-	$ZAPRET_SCRIPT stop
+	"$ZAPRET_SCRIPT" stop
 
 	sysctl -w net.netfilter.nf_conntrack_checksum=1
 }
