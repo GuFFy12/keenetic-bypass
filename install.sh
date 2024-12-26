@@ -72,14 +72,20 @@ echo "ndm version: $NDM_VERSION"
 echo Installing zapret...
 [ -f "$ZAPRET_SCRIPT" ] && "$ZAPRET_SCRIPT" stop
 rm_dir "$ZAPRET_BASE"
-curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/
+curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/ | tar -xz -C /opt/ || {
+	echo "Failed to download or extract zapret-$ZAPRET_VERSION.tar.gz" >&2
+	exit 1
+}
 mv "/opt/zapret-$ZAPRET_VERSION/" "$ZAPRET_BASE"
 
 echo Installing Keenetic Bypass...
 [ -f "$DNSMASQ_ROUTING_SCRIPT" ] && "$DNSMASQ_ROUTING_SCRIPT" stop
 rm_dir "$DNSMASQ_ROUTING_BASE"
 rm_dir "$TMP_DIR"
-git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git "$TMP_DIR"
+git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git "$TMP_DIR" || {
+	echo "Failed to clone the keenetic-bypass repository" >&2
+	exit 1
+}
 find "$TMP_DIR/opt/" -type f | while read -r file; do
 	dest="/opt/${file#"$TMP_DIR/opt/"}"
 
@@ -108,9 +114,9 @@ if [ $? -eq 0 ]; then
 fi
 
 echo Running zapret...
-"$ZAPRET_SCRIPT" restart
+"$ZAPRET_SCRIPT" start
 echo Running dnsmasq_routing...
-"$DNSMASQ_ROUTING_SCRIPT" restart
+"$DNSMASQ_ROUTING_SCRIPT" start
 
 rm_dir "$TMP_DIR"
 
