@@ -9,30 +9,46 @@ ZAPRET_SCRIPT="$ZAPRET_BASE/init.d/sysv/zapret_keenetic.sh"
 DNSMASQ_ROUTING_SCRIPT="$DNSMASQ_ROUTING_BASE/dnsmasq_routing.sh"
 
 replace_config_value() {
-    sed -i "s|^$2=.*|$2=$3|" "$1"
+	sed -i "s|^$2=.*|$2=$3|" "$1"
 }
 
 rm_dir() {
-    [ -d "$1" ] && rm -r "$1"
+	[ -d "$1" ] && rm -r "$1"
 }
 
 add_cron_job() {
-  if ! crontab -l 2>/dev/null | grep -Fq "$1"; then
-    (crontab -l 2>/dev/null; echo "$1") | crontab -
-    echo "Cronjob added: $1"
-  else
-    echo "Cronjob already exists: $1"
-  fi
+	if ! crontab -l 2>/dev/null | grep -Fq "$1"; then
+		(
+			crontab -l 2>/dev/null
+			echo "$1"
+		) | crontab -
+		echo "Cronjob added: $1"
+	else
+		echo "Cronjob already exists: $1"
+	fi
+}
+
+ask_yes_no() {
+	printf "%s (default: %s) (Y/N): " "$2" "${1:-N}"
+	read -r A
+
+	[ -z "$A" ] && A="${1:-N}"
+
+	case "$A" in
+	[yY1]) return 0 ;;
+	[nN0]) return 1 ;;
+	*) return 1 ;;
+	esac
 }
 
 if ! command -v ndmc >/dev/null; then
-    echo "ndmc not found" >&2
-    exit 1
+	echo "ndmc not found" >&2
+	exit 1
 fi
 
 if ! command -v opkg >/dev/null; then
-    echo "opkg not found" >&2
-    exit 1
+	echo "opkg not found" >&2
+	exit 1
 fi
 
 echo Installing packages...
@@ -41,34 +57,34 @@ opkg update && opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset
 NDM_VERSION="$(ndmc -c show version | grep -w title | head -n 1 | awk '{print $2}' | tr -cd '0-9.')"
 
 if [ -z "$NDM_VERSION" ]; then
-    echo "Invalid or missing version" >&2
-    exit 1
+	echo "Invalid or missing version" >&2
+	exit 1
 fi
 
 # ndm/iflayerchanged.d does not exist in versions below 4.0.0
 if [ "${NDM_VERSION%%.*}" -lt 4 ]; then
-    echo "Version $NDM_VERSION is less than 4.0.0" >&2
-    exit 1
+	echo "Version $NDM_VERSION is less than 4.0.0" >&2
+	exit 1
 fi
 
 echo "ndm version: $NDM_VERSION"
 
-echo Downloading zapret...
+echo Installing zapret...
 [ -f "$ZAPRET_SCRIPT" ] && "$ZAPRET_SCRIPT" stop
 rm_dir "$ZAPRET_BASE"
 curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/
 mv "/opt/zapret-$ZAPRET_VERSION/" "$ZAPRET_BASE"
 
-echo Downloading keenetic-bypass...
+echo Installing Keenetic Bypass...
 [ -f "$DNSMASQ_ROUTING_SCRIPT" ] && "$DNSMASQ_ROUTING_SCRIPT" stop
 rm_dir "$DNSMASQ_ROUTING_BASE"
 rm_dir "$TMP_DIR"
 git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git "$TMP_DIR"
 find "$TMP_DIR/opt/" -type f | while read -r file; do
-    dest="/opt/${file#"$TMP_DIR/opt/"}"
+	dest="/opt/${file#"$TMP_DIR/opt/"}"
 
-    mkdir -p "$(dirname "$dest")"
-    cp "$file" "$dest"
+	mkdir -p "$(dirname "$dest")"
+	cp "$file" "$dest"
 done
 
 echo Configuring zapret...
@@ -81,16 +97,14 @@ replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq.conf" "server" "127.0.0.1#$(
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE" "t2s0"
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
 
-echo "Do you want to run the ipset dnsmasq routing auto-save daily? (y/n)"
-read -r response1
-if [ "$response1" = "y" ] || [ "$response1" = "Y" ]; then
-  add_cron_job "0 0 * * * /opt/dnsmasq_routing/dnsmasq_routing.sh save"
+ask_yes_no 1 "Do you want to run the ipset dnsmasq routing auto-save daily?"
+if [ $? -eq 0 ]; then
+	add_cron_job "0 0 * * * /opt/dnsmasq_routing/dnsmasq_routing.sh save"
 fi
 
-echo "Do you want to run the zapret domain list update daily? (y/n)"
-read -r response2
-if [ "$response2" = "y" ] || [ "$response2" = "Y" ]; then
-  add_cron_job "0 0 * * * /opt/zapret/ipset/get_config.sh"
+ask_yes_no 0 "Do you want to run the zapret domain list update daily?"
+if [ $? -eq 0 ]; then
+	add_cron_job "0 0 * * * /opt/zapret/ipset/get_config.sh"
 fi
 
 echo Running zapret...
