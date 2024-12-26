@@ -97,12 +97,12 @@ replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq.conf" "server" "127.0.0.1#$(
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE" "t2s0"
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
 
-ask_yes_no 1 "Do you want to run the ipset dnsmasq routing auto-save daily?"
+ask_yes_no "y" "Do you want to run the ipset dnsmasq routing auto-save daily?"
 if [ $? -eq 0 ]; then
 	add_cron_job "0 0 * * * /opt/dnsmasq_routing/dnsmasq_routing.sh save"
 fi
 
-ask_yes_no 0 "Do you want to run the zapret domain list update daily?"
+ask_yes_no "y" "Do you want to run the zapret domain list update daily?"
 if [ $? -eq 0 ]; then
 	add_cron_job "0 0 * * * /opt/zapret/ipset/get_config.sh"
 fi
