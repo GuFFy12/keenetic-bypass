@@ -16,6 +16,15 @@ rm_dir() {
     [ -d "$1" ] && rm -r "$1"
 }
 
+add_cron_job() {
+  if ! crontab -l 2>/dev/null | grep -Fq "$1"; then
+    (crontab -l 2>/dev/null; echo "$1") | crontab -
+    echo "Cronjob added: $1"
+  else
+    echo "Cronjob already exists: $1"
+  fi
+}
+
 if ! command -v ndmc >/dev/null; then
     echo "ndmc not found" >&2
     exit 1
@@ -71,6 +80,18 @@ replace_config_value "$ZAPRET_BASE/config" "IFACE_WAN" "$(ip route | grep -w ^de
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq.conf" "server" "127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE" "t2s0"
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
+
+echo "Do you want to run the ipset dnsmasq routing auto-save daily? (y/n)"
+read -r response1
+if [ "$response1" = "y" ] || [ "$response1" = "Y" ]; then
+  add_cron_job "0 0 * * * /opt/dnsmasq_routing/dnsmasq_routing.sh save"
+fi
+
+echo "Do you want to run the zapret domain list update daily? (y/n)"
+read -r response2
+if [ "$response2" = "y" ] || [ "$response2" = "Y" ]; then
+  add_cron_job "0 0 * * * /opt/zapret/ipset/get_config.sh"
+fi
 
 echo Running zapret...
 "$ZAPRET_SCRIPT" restart
