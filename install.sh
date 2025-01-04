@@ -1,12 +1,13 @@
 #!/bin/sh
+set -euo pipefail
+IFS=$'\n\t'
 
-ZAPRET_VERSION="v69.8"
-
-TMP_DIR="/opt/tmp/keenetic-bypass"
-ZAPRET_BASE="/opt/zapret"
-DNSMASQ_ROUTING_BASE="/opt/dnsmasq_routing"
-ZAPRET_SCRIPT="$ZAPRET_BASE/init.d/sysv/zapret_keenetic.sh"
-DNSMASQ_ROUTING_SCRIPT="$DNSMASQ_ROUTING_BASE/dnsmasq_routing.sh"
+ZAPRET_VERSION="${ZAPRET_VERSION:-v69.9}"
+TMP_DIR="${TMP_DIR:-/opt/tmp/keenetic-bypass}"
+ZAPRET_BASE="${ZAPRET_BASE:-/opt/zapret}"
+DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
+ZAPRET_SCRIPT="${ZAPRET_SCRIPT:-"$ZAPRET_BASE/init.d/sysv/zapret_keenetic.sh"}"
+DNSMASQ_ROUTING_SCRIPT="${DNSMASQ_ROUTING_SCRIPT:-"$DNSMASQ_ROUTING_BASE/dnsmasq_routing.sh"}"
 
 replace_config_value() {
 	sed -i "s|^$2=.*|$2=$3|" "$1"
@@ -46,14 +47,6 @@ if ! command -v ndmc >/dev/null; then
 	exit 1
 fi
 
-if ! command -v opkg >/dev/null; then
-	echo "opkg not found" >&2
-	exit 1
-fi
-
-echo Installing packages...
-opkg update && opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
-
 NDM_VERSION="$(ndmc -c show version | grep -w title | head -n 1 | awk '{print $2}' | tr -cd '0-9.')"
 
 if [ -z "$NDM_VERSION" ]; then
@@ -67,12 +60,13 @@ if [ "${NDM_VERSION%%.*}" -lt 4 ]; then
 	exit 1
 fi
 
-echo "ndm version: $NDM_VERSION"
+echo Installing packages...
+opkg update && opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
 
 echo Installing zapret...
 [ -f "$ZAPRET_SCRIPT" ] && "$ZAPRET_SCRIPT" stop
 rm_dir "$ZAPRET_BASE"
-curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/ | tar -xz -C /opt/
+curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/
 mv "/opt/zapret-$ZAPRET_VERSION/" "$ZAPRET_BASE"
 
 echo Installing Keenetic Bypass...
@@ -98,14 +92,10 @@ replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE" "t
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
 
 ask_yes_no "y" "Do you want to run the ipset dnsmasq routing auto-save daily?"
-if [ $? -eq 0 ]; then
-	add_cron_job "0 0 * * * /opt/dnsmasq_routing/dnsmasq_routing.sh save"
-fi
+[ $? -eq 0 ] && add_cron_job "0 0 * * * /opt/dnsmasq_routing/dnsmasq_routing.sh save"
 
 ask_yes_no "y" "Do you want to run the zapret domain list update daily?"
-if [ $? -eq 0 ]; then
-	add_cron_job "0 0 * * * /opt/zapret/ipset/get_config.sh"
-fi
+[ $? -eq 0 ] && add_cron_job "0 0 * * * /opt/zapret/ipset/get_config.sh"
 
 echo Running zapret...
 "$ZAPRET_SCRIPT" start

@@ -1,11 +1,13 @@
 #!/bin/sh
-
-DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
-. "$DNSMASQ_ROUTING_BASE/functions.sh"
+set -euo pipefail
+IFS=$'\n\t'
 
 [ "$1" = "hook" ] || exit 0
 [ "$system_name" = "$INTERFACE" ] || exit 0
 [ "$layer" = "link" ] || exit 0
+
+DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
+. "$DNSMASQ_ROUTING_BASE/functions.sh"
 
 if [ "$level" = "running" ]; then
 	ip_route_blackhole_unapply
