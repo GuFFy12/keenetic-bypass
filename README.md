@@ -14,7 +14,7 @@
 - Выполните следующую команду:
 
   ```sh
-  sh -c "$(curl -s https://raw.githubusercontent.com/GuFFy12/keenetic-bypass/refs/heads/main/install.sh)"
+  opkg update && opkg install curl && sh -c "$(curl -s https://raw.githubusercontent.com/GuFFy12/keenetic-bypass/refs/heads/main/install.sh)"
   ```
 
 ### 2. Конфигурация Zapret ([`/opt/zapret/config`](https://github.com/bol-van/zapret))

@@ -14,7 +14,9 @@ replace_config_value() {
 }
 
 rm_dir() {
-	[ -d "$1" ] && rm -r "$1"
+	if [ -d "$1" ]; then
+        rm -r -- "$1"
+    fi
 }
 
 add_cron_job() {
@@ -87,15 +89,15 @@ echo Configuring zapret...
 
 echo Changing the settings...
 replace_config_value "$ZAPRET_BASE/config" "IFACE_WAN" "$(ip route | grep -w ^default | awk '{print $5}')"
-replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq.conf" "server" "127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
+replace_config_value "/opt/etc/dnsmasq.conf" "server" "127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE" "t2s0"
 replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
 
 ask_yes_no "y" "Do you want to run the ipset dnsmasq routing auto-save daily?"
-[ $? -eq 0 ] && add_cron_job "0 0 * * * /opt/dnsmasq_routing/dnsmasq_routing.sh save"
+[ $? -eq 0 ] && add_cron_job "0 0 * * * $DNSMASQ_ROUTING_SCRIPT save"
 
 ask_yes_no "y" "Do you want to run the zapret domain list update daily?"
-[ $? -eq 0 ] && add_cron_job "0 0 * * * /opt/zapret/ipset/get_config.sh"
+[ $? -eq 0 ] && add_cron_job "0 0 * * * $ZAPRET_BASE/ipset/get_config.sh"
 
 echo Running zapret...
 "$ZAPRET_SCRIPT" start
