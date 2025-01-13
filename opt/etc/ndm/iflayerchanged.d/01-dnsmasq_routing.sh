@@ -2,9 +2,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-[ "$1" = "hook" ] || exit 0
-[ "$system_name" = "$INTERFACE" ] || exit 0
-[ "$layer" = "link" ] || exit 0
+if [ "$1" != "hook" ] || [ "$system_name" != "$INTERFACE" ] || [ "$layer" != "link" ]; then
+	exit 0
+fi
 
 DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
 . "$DNSMASQ_ROUTING_BASE/functions.sh"

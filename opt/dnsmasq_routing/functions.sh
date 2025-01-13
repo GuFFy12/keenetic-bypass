@@ -16,15 +16,18 @@ ipset_exists() {
 }
 
 ipset_create() {
-	ipset_exists || ipset create "$IPSET_TABLE" hash:ip timeout "$IPSET_TABLE_TIMEOUT"
+	if ! ipset_exists; then
+		ipset create "$IPSET_TABLE" hash:ip timeout "$IPSET_TABLE_TIMEOUT"
+	fi
 }
 
 ipset_destroy() {
 	if iptables_rule_exists "$IPTABLES_RULE_SET_MARK" || iptables_rule_exists "$IPTABLES_RULE_RESTORE_MARK"; then
 		echo "Cannot destroy ipset: iptables rules exist" >&2
 		return 1
+	elif ipset_exists; then
+		ipset destroy "$IPSET_TABLE"
 	fi
-	ipset_exists && ipset destroy "$IPSET_TABLE"
 }
 
 ipset_save() {
@@ -39,8 +42,9 @@ ipset_restore() {
 	if ! ipset_exists; then
 		echo "Cannot restore ipset: ipset does not exist" >&2
 		return 1
+	elif ipset_rules_file_exists; then
+		ipset restore -exist <"$IPSET_TABLE_RULES_FILE"
 	fi
-	ipset_rules_file_exists && ipset restore -exist <"$IPSET_TABLE_RULES_FILE"
 }
 
 IPTABLES_RULE_SET_MARK="PREROUTING -w -t mangle ! -s $INTERFACE_SUBNET -m conntrack --ctstate NEW -m set --match-set $IPSET_TABLE dst -j CONNMARK --set-mark $MARK"
@@ -51,11 +55,15 @@ iptables_rule_exists() {
 }
 
 iptables_rule_add() {
-	iptables_rule_exists "$@" || eval iptables -A "$@"
+	if ! iptables_rule_exists "$@"; then
+		eval iptables -A "$@"
+	fi
 }
 
 iptables_rule_delete() {
-	iptables_rule_exists "$@" && eval iptables -D "$@"
+	if iptables_rule_exists "$@"; then
+		eval iptables -D "$@"
+	fi
 }
 
 iptables_apply_rules() {
@@ -77,11 +85,15 @@ ip_rule_exists() {
 }
 
 ip_rule_apply() {
-	ip_rule_exists || ip rule add fwmark "$MARK" table "$MARK"
+	if ! ip_rule_exists; then
+		ip rule add fwmark "$MARK" table "$MARK"
+	fi
 }
 
 ip_rule_unapply() {
-	ip_rule_exists && ip rule del fwmark "$MARK" table "$MARK"
+	if ip_rule_exists; then
+		ip rule del fwmark "$MARK" table "$MARK"
+	fi
 }
 
 ip_route_exists() {
@@ -101,21 +113,28 @@ ip_link_up() {
 }
 
 ip_route_blackhole_apply() {
-	ip_route_exists || ip route add blackhole default table "$MARK"
+	if ! ip_route_exists; then
+		ip route add blackhole default table "$MARK"
+	fi
 }
 
 ip_route_blackhole_unapply() {
-	ip_route_blackhole_exists && ip route del blackhole default table "$MARK"
+	if ip_route_blackhole_exists; then
+		ip route del blackhole default table "$MARK"
+	fi
 }
 
 ip_route_interface_apply() {
 	if ! ip_link_up; then
 		echo "Cannot apply ip route: interface is down" >&2
 		return 1
+	elif ! ip_route_exists; then
+		ip route add default dev "$INTERFACE" table "$MARK"
 	fi
-	ip_route_exists || ip route add default dev "$INTERFACE" table "$MARK"
 }
 
 ip_route_interface_unapply() {
-	ip_route_dev_exists && ip route del default dev "$INTERFACE" table "$MARK"
+	if ip_route_dev_exists; then
+		ip route del default dev "$INTERFACE" table "$MARK"
+	fi
 }

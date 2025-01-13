@@ -16,7 +16,9 @@ ipt_print_op() {
 }
 
 ipta() {
-	iptables -C "$@" >/dev/null 2>&1 && iptables -A "$@"
+	if iptables -C "$@" >/dev/null 2>&1; then
+		iptables -A "$@"
+	fi
 }
 
 # https://ntc.party/t/zapret-whats-new/61/71

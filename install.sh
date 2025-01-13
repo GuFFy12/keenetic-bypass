@@ -3,20 +3,40 @@ set -euo pipefail
 IFS=$'\n\t'
 
 ZAPRET_VERSION="${ZAPRET_VERSION:-v69.9}"
-TMP_DIR="${TMP_DIR:-/opt/tmp/keenetic-bypass}"
-ZAPRET_BASE="${ZAPRET_BASE:-/opt/zapret}"
-DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
-ZAPRET_SCRIPT="${ZAPRET_SCRIPT:-"$ZAPRET_BASE/init.d/sysv/zapret_keenetic.sh"}"
-DNSMASQ_ROUTING_SCRIPT="${DNSMASQ_ROUTING_SCRIPT:-"$DNSMASQ_ROUTING_BASE/dnsmasq_routing.sh"}"
 
-replace_config_value() {
-	sed -i "s|^$2=.*|$2=$3|" "$1"
-}
+ZAPRET_URL="${ZAPRET_URL:-"https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz"}"
+KEENETIC_BYPASS_URL="${KEENETIC_BYPASS_URL:-https://github.com/GuFFy12/keenetic-bypass.git}"
+
+TMP_DIR="${TMP_DIR:-/opt/tmp/keenetic-bypass}"
+
+ZAPRET_BASE="${ZAPRET_BASE:-/opt/zapret}"
+ZAPRET_SCRIPT="${ZAPRET_SCRIPT:-"$ZAPRET_BASE/init.d/sysv/zapret_keenetic.sh"}"
+ZAPRET_CONFIG="${ZAPRET_CONFIG:-"$ZAPRET_BASE/config"}"
+ZAPRET_INSTALL_BIN="${ZAPRET_INSTALL_BIN:-"$ZAPRET_BASE/install_bin.sh"}"
+ZAPRET_GET_CONFIG="${ZAPRET_GET_CONFIG:-"$ZAPRET_BASE/ipset/get_config.sh"}"
+
+DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
+DNSMASQ_ROUTING_SCRIPT="${DNSMASQ_ROUTING_SCRIPT:-"$DNSMASQ_ROUTING_BASE/dnsmasq_routing.sh"}"
+DNSMASQ_ROUTING_CONFIG="${DNSMASQ_ROUTING_CONFIG:-"$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf"}"
+DNSMASQ_CONFIG="${DNSMASQ_CONFIG:-/opt/etc/dnsmasq.conf}"
 
 rm_dir() {
 	if [ -d "$1" ]; then
-        rm -r -- "$1"
-    fi
+		rm -r "$1"
+	fi
+}
+
+delete_service() {
+	if [ ! -f "$2" ]; then
+		return 0
+	elif ! "$2" stop; then
+		echo "Failed to stop service using script: $2" >&2
+	fi
+	rm_dir "$1"
+}
+
+replace_config_value() {
+	sed -i "s|^$2=.*|$2=$3|" "$1"
 }
 
 add_cron_job() {
@@ -32,12 +52,14 @@ add_cron_job() {
 }
 
 ask_yes_no() {
-	printf "%s (default: %s) (Y/N): " "$2" "${1:-N}"
-	read -r A
+	echo "$2 (default: ${1:-N}) (Y/N): "
+	read -r ANSWER
 
-	[ -z "$A" ] && A="${1:-N}"
+	if [ -z "$ANSWER" ]; then
+		ANSWER="${1:-N}"
+	fi
 
-	case "$A" in
+	case "$ANSWER" in
 	[yY1]) return 0 ;;
 	[nN0]) return 1 ;;
 	*) return 1 ;;
@@ -45,37 +67,38 @@ ask_yes_no() {
 }
 
 if ! command -v ndmc >/dev/null; then
-	echo "ndmc not found" >&2
+	echo "Command 'ndmc' not found" >&2
 	exit 1
-fi
-
-NDM_VERSION="$(ndmc -c show version | grep -w title | head -n 1 | awk '{print $2}' | tr -cd '0-9.')"
-
-if [ -z "$NDM_VERSION" ]; then
-	echo "Invalid or missing version" >&2
+elif ! NDM_VERSION="$(ndmc -c show version | grep -w title | head -n 1 | awk '{print $2}' | tr -cd '0-9.')"; then
+	echo "Failed to retrieve NDM version" >&2
 	exit 1
-fi
-
-# ndm/iflayerchanged.d does not exist in versions below 4.0.0
-if [ "${NDM_VERSION%%.*}" -lt 4 ]; then
-	echo "Version $NDM_VERSION is less than 4.0.0" >&2
+elif [ -z "$NDM_VERSION" ]; then
+	echo "Invalid or missing NDM version" >&2
+	exit 1
+elif [ "${NDM_VERSION%%.*}" -lt 4 ]; then
+	# ndm/iflayerchanged.d does not exist in versions below 4.0.0
+	echo "NDM version $NDM_VERSION is less than 4.0.0" >&2
 	exit 1
 fi
 
 echo Installing packages...
 opkg update && opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
 
+delete_service "$ZAPRET_BASE" "$ZAPRET_SCRIPT"
 echo Installing zapret...
-[ -f "$ZAPRET_SCRIPT" ] && "$ZAPRET_SCRIPT" stop
-rm_dir "$ZAPRET_BASE"
-curl -L "https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz" | tar -xz -C /opt/
+if ! curl -L "$ZAPRET_URL" | tar -xz -C /opt/; then
+	echo "Failed to download zapret archive" >&2
+	exit 1
+fi
 mv "/opt/zapret-$ZAPRET_VERSION/" "$ZAPRET_BASE"
 
+delete_service "$DNSMASQ_ROUTING_BASE" "$DNSMASQ_ROUTING_SCRIPT"
 echo Installing Keenetic Bypass...
-[ -f "$DNSMASQ_ROUTING_SCRIPT" ] && "$DNSMASQ_ROUTING_SCRIPT" stop
-rm_dir "$DNSMASQ_ROUTING_BASE"
 rm_dir "$TMP_DIR"
-git clone --depth=1 https://github.com/GuFFy12/keenetic-bypass.git "$TMP_DIR"
+if ! git clone --depth=1 "$KEENETIC_BYPASS_URL" "$TMP_DIR"; then
+	echo "Failed to clone Keenetic Bypass repository" >&2
+	exit 1
+fi
 find "$TMP_DIR/opt/" -type f | while read -r file; do
 	dest="/opt/${file#"$TMP_DIR/opt/"}"
 
@@ -84,24 +107,36 @@ find "$TMP_DIR/opt/" -type f | while read -r file; do
 done
 
 echo Configuring zapret...
-"$ZAPRET_BASE/install_bin.sh"
-"$ZAPRET_BASE/ipset/get_config.sh"
+"$ZAPRET_INSTALL_BIN"
+"$ZAPRET_GET_CONFIG"
 
 echo Changing the settings...
-replace_config_value "$ZAPRET_BASE/config" "IFACE_WAN" "$(ip route | grep -w ^default | awk '{print $5}')"
-replace_config_value "/opt/etc/dnsmasq.conf" "server" "127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
-replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE" "t2s0"
-replace_config_value "$DNSMASQ_ROUTING_BASE/dnsmasq_routing.conf" "INTERFACE_SUBNET" "172.20.12.1/32"
+if ! ZAPRET_CONFIG_IFACE_WAN="${ZAPRET_CONFIG_IFACE_WAN:-"$(ip route show default 0.0.0.0/0 | awk '{print $5}')"}"; then
+	echo "Failed to retrieve WAN interface" >&2
+	exit 1
+fi
+if ! DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"}"; then
+	echo "Failed to retrieve DNS server" >&2
+	exit 1
+fi
+DNSMASQ_ROUTING_CONFIG_INTERFACE="${DNSMASQ_ROUTING_CONFIG_INTERFACE:-t2s0}"
+DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET="${DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET:-172.20.12.1/32}"
 
-ask_yes_no "y" "Do you want to run the ipset dnsmasq routing auto-save daily?"
-[ $? -eq 0 ] && add_cron_job "0 0 * * * $DNSMASQ_ROUTING_SCRIPT save"
+replace_config_value "$ZAPRET_CONFIG" "IFACE_WAN" "$ZAPRET_CONFIG_IFACE_WAN"
+replace_config_value "$DNSMASQ_CONFIG" "server" "$DNSMASQ_CONFIG_SERVER"
+replace_config_value "$DNSMASQ_ROUTING_CONFIG" "INTERFACE" "$DNSMASQ_ROUTING_CONFIG_INTERFACE"
+replace_config_value "$DNSMASQ_ROUTING_CONFIG" "INTERFACE_SUBNET" "$DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET"
 
-ask_yes_no "y" "Do you want to run the zapret domain list update daily?"
-[ $? -eq 0 ] && add_cron_job "0 0 * * * $ZAPRET_BASE/ipset/get_config.sh"
+if ask_yes_no "y" "Run ipset dnsmasq routing auto-save daily?"; then
+	add_cron_job "0 0 * * * $DNSMASQ_ROUTING_SCRIPT save"
+fi
+if ask_yes_no "y" "Run zapret domain list update daily?"; then
+	add_cron_job "0 0 * * * $ZAPRET_GET_CONFIG"
+fi
 
 echo Running zapret...
 "$ZAPRET_SCRIPT" start
-echo Running dnsmasq_routing...
+echo Running dnsmasq routing...
 "$DNSMASQ_ROUTING_SCRIPT" start
 
 rm_dir "$TMP_DIR"
