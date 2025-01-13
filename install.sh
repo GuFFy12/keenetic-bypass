@@ -101,16 +101,7 @@ if ! git clone --depth=1 "$KEENETIC_BYPASS_URL" "$TMP_DIR"; then
 	echo "Failed to clone Keenetic Bypass repository" >&2
 	exit 1
 fi
-find "$TMP_DIR/opt/" | while read -r file; do
-	dest="/opt/${file#"$TMP_DIR/opt/"}"
-
-    if [ -d "$file" ]; then
-        mkdir -p "$dest"
-    else
-        mkdir -p "$(dirname "$dest")"
-        cp -a "$file" "$dest"
-    fi
-done
+cp -r "$TMP_DIR/opt/." /opt/
 
 echo Configuring zapret...
 "$ZAPRET_INSTALL_BIN"
