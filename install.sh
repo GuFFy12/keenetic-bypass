@@ -2,8 +2,6 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# ? Cron, file cp
-
 ZAPRET_VERSION="${ZAPRET_VERSION:-v69.9}"
 
 ZAPRET_URL="${ZAPRET_URL:-"https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz"}"
@@ -84,7 +82,7 @@ elif [ "${NDM_VERSION%%.*}" -lt 4 ]; then
 fi
 
 echo Installing packages...
-opkg update && opkg install coreutils-sort curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
+opkg update && opkg install coreutils-sort cron curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
 
 delete_service "$ZAPRET_BASE" "$ZAPRET_SCRIPT"
 echo Installing zapret...
