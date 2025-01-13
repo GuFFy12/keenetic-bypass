@@ -2,6 +2,8 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+# ? Cron, file cp
+
 ZAPRET_VERSION="${ZAPRET_VERSION:-v69.9}"
 
 ZAPRET_URL="${ZAPRET_URL:-"https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz"}"
@@ -99,7 +101,7 @@ if ! git clone --depth=1 "$KEENETIC_BYPASS_URL" "$TMP_DIR"; then
 	echo "Failed to clone Keenetic Bypass repository" >&2
 	exit 1
 fi
-find "$TMP_DIR/opt/" -type f | while read -r file; do
+find "$TMP_DIR/opt/" -type f -o -type l | while read -r file; do
 	dest="/opt/${file#"$TMP_DIR/opt/"}"
 
 	mkdir -p "$(dirname "$dest")"
