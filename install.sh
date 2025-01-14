@@ -145,7 +145,7 @@ if ! ZAPRET_CONFIG_IFACE_WAN="${ZAPRET_CONFIG_IFACE_WAN:-"$(ip route show defaul
 elif ! DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"}"; then
 	echo "Failed to retrieve DNS server" >&2
 	exit 1
-elif ! select_interface; then
+elif ! select_dnsmasq_routing_interface; then
 	echo "Failed to retrieve routing interface" >&2
 	exit 1
 fi
