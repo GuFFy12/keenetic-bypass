@@ -27,9 +27,7 @@ rm_dir() {
 }
 
 delete_service() {
-	if [ ! -f "$2" ]; then
-		return 0
-	elif ! "$2" stop; then
+	if [ -f "$2" ] && ! "$2" stop; then
 		echo "Failed to stop service using script: $2" >&2
 	fi
 	rm_dir "$1"
