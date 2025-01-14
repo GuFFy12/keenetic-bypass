@@ -46,7 +46,7 @@ select_dnsmasq_routing_interface() {
 	echo "Interface list:"
 	echo "$interfaces" | awk '{print NR ") " $1 " (" $2 ")"}'
 
-	echo "Select tunnel interface for dnsmasq routing (default: 1): "
+	echo "Enter number of tunnel interface for dnsmasq routing (default: 1): "
 	read -r choice
 
 	if ! [ "$choice" -ge 1 ] 2>/dev/null || [ -z "$choice" ]; then
