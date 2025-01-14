@@ -35,11 +35,26 @@ delete_service() {
 	rm_dir "$1"
 }
 
+get_zapret_config_iface_wan() {
+	ZAPRET_CONFIG_IFACE_WAN="${ZAPRET_CONFIG_IFACE_WAN:-"$(ip route show default 0.0.0.0/0 | awk '{print $5}')"}"
+
+	if [ -z "$ZAPRET_CONFIG_IFACE_WAN" ]; then
+		return 1
+	fi
+}
+
+get_dnsmasq_config_server() {
+	DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"}"
+
+	if [ -z "$DNSMASQ_CONFIG_SERVER" ]; then
+		return 1
+	fi
+}
+
 select_dnsmasq_routing_interface() {
 	interfaces=$(ip -o -4 addr show | awk '{print $2 " " $4}')
 
 	if [ -z "$interfaces" ]; then
-		echo "No interfaces found!"
 		return 1
 	fi
 
@@ -61,11 +76,9 @@ select_dnsmasq_routing_interface() {
 	DNSMASQ_ROUTING_CONFIG_INTERFACE=$(echo "$selected_line" | awk '{print $1}')
 	DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET=$(echo "$selected_line" | awk '{print $2}')
 
-	if [ -n "$DNSMASQ_ROUTING_CONFIG_INTERFACE" ] && [ -n "$DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET" ]; then
-		return 0
+	if [ -z "$DNSMASQ_ROUTING_CONFIG_INTERFACE" ] || [ -z "$DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET" ]; then
+		return 1
 	fi
-
-	return 1
 }
 
 replace_config_value() {
@@ -139,10 +152,10 @@ echo Configuring zapret...
 "$ZAPRET_GET_CONFIG"
 
 echo Changing the settings...
-if ! ZAPRET_CONFIG_IFACE_WAN="${ZAPRET_CONFIG_IFACE_WAN:-"$(ip route show default 0.0.0.0/0 | awk '{print $5}')"}" || [ -z "$ZAPRET_CONFIG_IFACE_WAN" ]; then
+if ! get_zapret_config_iface_wan; then
 	echo "Failed to retrieve WAN interface" >&2
 	exit 1
-elif ! DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$(awk '$1 == "127.0.0.2" {print $2; exit}' /tmp/ndnproxymain.stat)"}" || [ -z "$DNSMASQ_CONFIG_SERVER" ]; then
+elif ! get_dnsmasq_config_server; then
 	echo "Failed to retrieve DNS server" >&2
 	exit 1
 elif ! select_dnsmasq_routing_interface; then
