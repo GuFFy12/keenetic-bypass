@@ -35,7 +35,7 @@ delete_service() {
 	rm_dir "$1"
 }
 
-select_interface() {
+select_dnsmasq_routing_interface() {
 	interfaces=$(ip -o -4 addr show | awk '{print $2 " " $4}')
 
 	if [ -z "$interfaces" ]; then
@@ -46,7 +46,7 @@ select_interface() {
 	echo "Interface list:"
 	echo "$interfaces" | awk '{print NR ") " $1 " (" $2 ")"}'
 
-	echo "Enter number (default: 1): "
+	echo "Select tunnel interface for dnsmasq routing (default: 1): "
 	read -r choice
 
 	if ! [ "$choice" -ge 1 ] 2>/dev/null || [ -z "$choice" ]; then
