@@ -42,11 +42,14 @@ get_zapret_config_iface_wan() {
 }
 
 get_dnsmasq_config_server() {
-	DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"}"
+	dnsmasq_config_server_port="$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"
 
-	if [ -z "$DNSMASQ_CONFIG_SERVER" ]; then
+	if [ -z "$dnsmasq_config_server_port" ]; then
+		echo No DNS server found >&2
 		return 1
 	fi
+
+	DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$dnsmasq_config_server_port"}"
 }
 
 select_dnsmasq_routing_interface() {
@@ -60,7 +63,7 @@ select_dnsmasq_routing_interface() {
 	echo Interface list:
 	echo "$interfaces" | awk '{print $1 " " $2 " (" $3 ")"}'
 
-	echo Enter interface tunnel number for dnsmasq routing: 
+	echo Enter interface tunnel number for dnsmasq routing:
 	read -r choice
 
 	selected_line="$(echo "$interfaces" | awk -F': ' -v choice="$choice" '$1 == choice')"
@@ -126,7 +129,7 @@ opkg update && opkg install coreutils-sort cron curl dnsmasq git-http grep gzip 
 
 echo Installing zapret...
 delete_service "$ZAPRET_BASE" "$ZAPRET_SCRIPT"
-curl --fail -L "$ZAPRET_URL" | tar -xz -C /opt/
+curl --fail -L "$ZAPRET_URL" | tar -xz -C /opt/ 2>/dev/null
 mv "/opt/zapret-$ZAPRET_VERSION/" "$ZAPRET_BASE"
 
 echo Installing Keenetic Bypass...
