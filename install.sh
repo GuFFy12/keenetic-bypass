@@ -119,7 +119,7 @@ opkg update && opkg install coreutils-sort cron curl dnsmasq git-http grep gzip 
 
 delete_service "$ZAPRET_BASE" "$ZAPRET_SCRIPT"
 echo Installing zapret...
-if ! curl -L "$ZAPRET_URL" | tar -xz -C /opt/; then
+if ! curl --fail -L "$ZAPRET_URL" | tar -xz -C /opt/; then
 	echo "Failed to download zapret archive" >&2
 	exit 1
 fi
@@ -139,10 +139,10 @@ echo Configuring zapret...
 "$ZAPRET_GET_CONFIG"
 
 echo Changing the settings...
-if ! ZAPRET_CONFIG_IFACE_WAN="${ZAPRET_CONFIG_IFACE_WAN:-"$(ip route show default 0.0.0.0/0 | awk '{print $5}')"}"; then
+if ! ZAPRET_CONFIG_IFACE_WAN="${ZAPRET_CONFIG_IFACE_WAN:-"$(ip route show default 0.0.0.0/0 | awk '{print $5}')"}" || [ -z "$ZAPRET_CONFIG_IFACE_WAN" ]; then
 	echo "Failed to retrieve WAN interface" >&2
 	exit 1
-elif ! DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"}"; then
+elif ! DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$(awk '$1 == "127.0.0.2" {print $2; exit}' /tmp/ndnproxymain.stat)"}" || [ -z "$DNSMASQ_CONFIG_SERVER" ]; then
 	echo "Failed to retrieve DNS server" >&2
 	exit 1
 elif ! select_dnsmasq_routing_interface; then
