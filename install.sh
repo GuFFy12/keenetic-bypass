@@ -52,33 +52,32 @@ get_dnsmasq_config_server() {
 }
 
 select_dnsmasq_routing_interface() {
-	interfaces=$(ip -o -4 addr show | awk '{print $2 " " $4}')
+	interfaces=$(ip -o -4 addr show | awk '{print $1 " " $2 " " $4}')
 
 	if [ -z "$interfaces" ]; then
 		return 1
 	fi
 
 	echo "Interface list:"
-	echo "$interfaces" | awk '{print NR ") " $1 " (" $2 ")"}'
+	echo "$interfaces" | awk '{print $1 ": " $2 " (" $3 ")"}'
 
-	echo "Enter number of tunnel interface for dnsmasq routing (default: 1): "
+	echo "Enter interface number for dnsmasq routing (e.g., 10, 31): "
 	read -r choice
 
-	if ! [ "$choice" -ge 1 ] 2>/dev/null || [ -z "$choice" ]; then
-		choice=1
+	if ! echo "$interfaces" | awk '{print $1}' | grep -q "^$choice$"; then
+		echo "Invalid interface number: $choice" >&2
+		return 1
 	fi
 
-	selected_line=$(echo "$interfaces" | awk 'NR=='"$choice"'')
-	if [ -z "$selected_line" ]; then
-		selected_line=$(echo "$interfaces" | awk 'NR==1')
-	fi
-
-	DNSMASQ_ROUTING_CONFIG_INTERFACE=$(echo "$selected_line" | awk '{print $1}')
-	DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET=$(echo "$selected_line" | awk '{print $2}')
+	selected_line=$(echo "$interfaces" | awk '$1 == "'"$choice"'"')
+	DNSMASQ_ROUTING_CONFIG_INTERFACE=$(echo "$selected_line" | awk '{print $2}')
+	DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET=$(echo "$selected_line" | awk '{print $3}')
 
 	if [ -z "$DNSMASQ_ROUTING_CONFIG_INTERFACE" ] || [ -z "$DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET" ]; then
 		return 1
 	fi
+
+	return 0
 }
 
 replace_config_value() {
