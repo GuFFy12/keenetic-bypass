@@ -57,17 +57,12 @@ select_dnsmasq_routing_interface() {
 	fi
 
 	echo "Interface list:"
-	echo "$interfaces" | awk '{print $1 ": " $2 " (" $3 ")"}'
+	echo "$interfaces" | awk '{print $1 " " $2 " (" $3 ")"}'
 
-	echo "Enter interface number for dnsmasq routing (e.g., 10, 31): "
+	echo "Enter interface tunnel number for dnsmasq routing (e.g., 10, 31): "
 	read -r choice
 
-	if ! echo "$interfaces" | awk '{print $1}' | grep -q "^$choice$"; then
-		echo "Invalid interface number: $choice" >&2
-		return 1
-	fi
-
-	selected_line=$(echo "$interfaces" | awk '$1 == "'"$choice"'"')
+	selected_line="$(echo "$interfaces" | awk -F': ' -v choice="$choice" '$1 == choice')"
 	DNSMASQ_ROUTING_CONFIG_INTERFACE=$(echo "$selected_line" | awk '{print $2}')
 	DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET=$(echo "$selected_line" | awk '{print $3}')
 

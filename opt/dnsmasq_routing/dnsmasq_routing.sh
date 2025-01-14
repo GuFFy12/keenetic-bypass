@@ -22,7 +22,7 @@ do_start() {
 do_stop() {
 	ip_rule_unapply
 	iptables_unapply_rules
-	if [ "$IPSET_TABLE_SAVE" = "1" ]; then
+	if [ "$IPSET_TABLE_SAVE" = "1" ] && ipset_exists; then
 		ipset_save
 	fi
 	ipset_destroy
