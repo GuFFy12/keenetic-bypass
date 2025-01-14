@@ -53,13 +53,14 @@ select_dnsmasq_routing_interface() {
 	interfaces=$(ip -o -4 addr show | awk '{print $1 " " $2 " " $4}')
 
 	if [ -z "$interfaces" ]; then
+		echo No interfaces found >&2
 		return 1
 	fi
 
-	echo "Interface list:"
+	echo Interface list:
 	echo "$interfaces" | awk '{print $1 " " $2 " (" $3 ")"}'
 
-	echo "Enter interface tunnel number for dnsmasq routing (e.g., 10, 31): "
+	echo Enter interface tunnel number for dnsmasq routing: 
 	read -r choice
 
 	selected_line="$(echo "$interfaces" | awk -F': ' -v choice="$choice" '$1 == choice')"
@@ -67,6 +68,7 @@ select_dnsmasq_routing_interface() {
 	DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET=$(echo "$selected_line" | awk '{print $3}')
 
 	if [ -z "$DNSMASQ_ROUTING_CONFIG_INTERFACE" ] || [ -z "$DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET" ]; then
+		echo Invalid interface choice >&2
 		return 1
 	fi
 
@@ -105,13 +107,13 @@ ask_yes_no() {
 }
 
 if ! command -v ndmc >/dev/null; then
-	echo "Command 'ndmc' not found" >&2
+	echo Command 'ndmc' not found >&2
 	exit 1
 elif ! NDM_VERSION="$(ndmc -c show version | grep -w title | head -n 1 | awk '{print $2}' | tr -cd '0-9.')"; then
-	echo "Failed to retrieve NDM version" >&2
+	echo Failed to retrieve NDM version >&2
 	exit 1
 elif [ -z "$NDM_VERSION" ]; then
-	echo "Invalid or missing NDM version" >&2
+	echo Invalid or missing NDM version >&2
 	exit 1
 elif [ "${NDM_VERSION%%.*}" -lt 4 ]; then
 	# ndm/iflayerchanged.d does not exist in versions below 4.0.0
@@ -122,21 +124,15 @@ fi
 echo Installing packages...
 opkg update && opkg install coreutils-sort cron curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
 
-delete_service "$ZAPRET_BASE" "$ZAPRET_SCRIPT"
 echo Installing zapret...
-if ! curl --fail -L "$ZAPRET_URL" | tar -xz -C /opt/; then
-	echo "Failed to download zapret archive" >&2
-	exit 1
-fi
+delete_service "$ZAPRET_BASE" "$ZAPRET_SCRIPT"
+curl --fail -L "$ZAPRET_URL" | tar -xz -C /opt/
 mv "/opt/zapret-$ZAPRET_VERSION/" "$ZAPRET_BASE"
 
-delete_service "$DNSMASQ_ROUTING_BASE" "$DNSMASQ_ROUTING_SCRIPT"
 echo Installing Keenetic Bypass...
+delete_service "$DNSMASQ_ROUTING_BASE" "$DNSMASQ_ROUTING_SCRIPT"
 rm_dir "$KEENETIC_BYPASS_TMP_DIR"
-if ! git clone --depth=1 "$KEENETIC_BYPASS_URL" "$KEENETIC_BYPASS_TMP_DIR"; then
-	echo "Failed to clone Keenetic Bypass repository" >&2
-	exit 1
-fi
+git clone --depth=1 "$KEENETIC_BYPASS_URL" "$KEENETIC_BYPASS_TMP_DIR"
 cp -r "$KEENETIC_BYPASS_TMP_DIR/opt/." /opt/
 
 echo Configuring zapret...
@@ -145,13 +141,13 @@ echo Configuring zapret...
 
 echo Changing the settings...
 if ! get_zapret_config_iface_wan; then
-	echo "Failed to retrieve WAN interface" >&2
+	echo Failed to retrieve WAN interface for zapret >&2
 	exit 1
 elif ! get_dnsmasq_config_server; then
-	echo "Failed to retrieve DNS server" >&2
+	echo Failed to retrieve DNS server for dnsmasq >&2
 	exit 1
 elif ! select_dnsmasq_routing_interface; then
-	echo "Failed to retrieve routing interface" >&2
+	echo Failed to retrieve routing interface for dnsmasq routing >&2
 	exit 1
 fi
 
@@ -160,7 +156,7 @@ replace_config_value "$DNSMASQ_CONFIG" "server" "$DNSMASQ_CONFIG_SERVER"
 replace_config_value "$DNSMASQ_ROUTING_CONFIG" "INTERFACE" "$DNSMASQ_ROUTING_CONFIG_INTERFACE"
 replace_config_value "$DNSMASQ_ROUTING_CONFIG" "INTERFACE_SUBNET" "$DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET"
 
-if ask_yes_no "y" "Run ipset dnsmasq routing auto-save daily?"; then
+if ask_yes_no "y" "Run ipset dnsmasq routing auto save daily?"; then
 	add_cron_job "0 0 * * * $DNSMASQ_ROUTING_SCRIPT save"
 fi
 if ask_yes_no "y" "Run zapret domain list update daily?"; then
