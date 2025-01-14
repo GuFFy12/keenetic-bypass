@@ -9,30 +9,7 @@
 
 ## Шаги установки
 
-### 1. Установка необходимых компонентов
-
-- Выполните следующую команду:
-
-  ```sh
-  opkg update && opkg install curl && sh -c "$(curl -s https://raw.githubusercontent.com/GuFFy12/keenetic-bypass/refs/heads/main/install.sh)"
-  ```
-
-### 2. Конфигурация Zapret ([`/opt/zapret/config`](https://github.com/bol-van/zapret))
-
-- Переменная `IFACE_WAN` установлена автоматически на дефолтный интерфейс `wan`, который использует внешний IP-адрес.
-  Чтобы вручную узнать его, выполните команду:
-
-  ```sh
-  ip addr
-  ```
-
-- Опционально обновите списки доменов `/opt/zapret/ipset/zapret-hosts-user.txt` и выполните команду:
-
-  ```sh
-  /opt/zapret/ipset/get_config.sh
-  ```
-
-### 3. Настройки в веб-панели Keenetic
+### 1. Настройки в веб-панели Keenetic
 
 - Настройте и включите туннель [VPN](https://help.keenetic.com/hc/ru/articles/115005342025)
   или [Proxy](https://help.keenetic.com/hc/ru/articles/7474374790300).
@@ -46,6 +23,30 @@
   oaiusercontent.com
   github.com
   githubusercontent.com
+  githubcopilot.com
+  ```
+
+### 2. Установка необходимых компонентов
+
+- Выполните следующую команду:
+
+  ```sh
+  opkg update && opkg install curl && sh -c "$(curl -s https://raw.githubusercontent.com/GuFFy12/keenetic-bypass/refs/heads/main/install.sh)"
+  ```
+
+### 3. Конфигурация Zapret ([`/opt/zapret/config`](https://github.com/bol-van/zapret))
+
+- Переменная `IFACE_WAN` установлена автоматически на дефолтный интерфейс `wan`, который использует внешний IP-адрес.
+  Чтобы вручную узнать его, выполните команду:
+
+  ```sh
+  ip addr
+  ```
+
+- Опционально обновите списки доменов `/opt/zapret/ipset/zapret-hosts-user.txt` и выполните команду:
+
+  ```sh
+  /opt/zapret/ipset/get_config.sh
   ```
 
 ### 4. Конфигурация Dnsmasq ([`/opt/dnsmasq_routing/dnsmasq.conf`](https://thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html))
@@ -61,7 +62,7 @@
 
 - Устройство отправляет DNS-запрос на маршрутизатор, который с помощью dnsmasq возвращает IP-адрес и добавляет его в ipset.
   Все IP-адреса из ipset перенаправляются через туннель. Для работы системы важно, чтобы все DNS-запросы шли через маршрутизатор.
-- Переменные `INTERFACE` и `INTERFACE_SUBNET` установлены автоматически на первый найденный туннель в системе если он есть.
+- Переменные `INTERFACE` и `INTERFACE_SUBNET` установлены в зависимости от вашего выбора во время установки.
   Чтобы вручную узнать параметры туннеля выполните команду:
 
   ```sh

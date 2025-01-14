@@ -7,7 +7,7 @@ ZAPRET_VERSION="${ZAPRET_VERSION:-v69.9}"
 ZAPRET_URL="${ZAPRET_URL:-"https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz"}"
 KEENETIC_BYPASS_URL="${KEENETIC_BYPASS_URL:-https://github.com/GuFFy12/keenetic-bypass.git}"
 
-TMP_DIR="${TMP_DIR:-/opt/tmp/keenetic-bypass}"
+KEENETIC_BYPASS_TMP_DIR="${KEENETIC_BYPASS_TMP_DIR:-/opt/tmp/keenetic-bypass}"
 
 ZAPRET_BASE="${ZAPRET_BASE:-/opt/zapret}"
 ZAPRET_SCRIPT="${ZAPRET_SCRIPT:-"$ZAPRET_BASE/init.d/sysv/zapret_keenetic.sh"}"
@@ -35,6 +35,39 @@ delete_service() {
 	rm_dir "$1"
 }
 
+select_interface() {
+	interfaces=$(ip -o -4 addr show | awk '{print $2 " " $4}')
+
+	if [ -z "$interfaces" ]; then
+		echo "No interfaces found!"
+		return 1
+	fi
+
+	echo "Interface list:"
+	echo "$interfaces" | awk '{print NR ") " $1 " (" $2 ")"}'
+
+	echo "Enter number (default: 1): "
+	read -r choice
+
+	if ! [ "$choice" -ge 1 ] 2>/dev/null || [ -z "$choice" ]; then
+		choice=1
+	fi
+
+	selected_line=$(echo "$interfaces" | awk 'NR=='"$choice"'')
+	if [ -z "$selected_line" ]; then
+		selected_line=$(echo "$interfaces" | awk 'NR==1')
+	fi
+
+	DNSMASQ_ROUTING_CONFIG_INTERFACE=$(echo "$selected_line" | awk '{print $1}')
+	DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET=$(echo "$selected_line" | awk '{print $2}')
+
+	if [ -n "$DNSMASQ_ROUTING_CONFIG_INTERFACE" ] && [ -n "$DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET" ]; then
+		return 0
+	fi
+
+	return 1
+}
+
 replace_config_value() {
 	sed -i "s|^$2=.*|$2=$3|" "$1"
 }
@@ -53,13 +86,13 @@ add_cron_job() {
 
 ask_yes_no() {
 	echo "$2 (default: ${1:-N}) (Y/N): "
-	read -r ANSWER
+	read -r answer
 
-	if [ -z "$ANSWER" ]; then
-		ANSWER="${1:-N}"
+	if [ -z "$answer" ]; then
+		answer="${1:-N}"
 	fi
 
-	case "$ANSWER" in
+	case "$answer" in
 	[yY1]) return 0 ;;
 	[nN0]) return 1 ;;
 	*) return 1 ;;
@@ -94,12 +127,12 @@ mv "/opt/zapret-$ZAPRET_VERSION/" "$ZAPRET_BASE"
 
 delete_service "$DNSMASQ_ROUTING_BASE" "$DNSMASQ_ROUTING_SCRIPT"
 echo Installing Keenetic Bypass...
-rm_dir "$TMP_DIR"
-if ! git clone --depth=1 "$KEENETIC_BYPASS_URL" "$TMP_DIR"; then
+rm_dir "$KEENETIC_BYPASS_TMP_DIR"
+if ! git clone --depth=1 "$KEENETIC_BYPASS_URL" "$KEENETIC_BYPASS_TMP_DIR"; then
 	echo "Failed to clone Keenetic Bypass repository" >&2
 	exit 1
 fi
-cp -r "$TMP_DIR/opt/." /opt/
+cp -r "$KEENETIC_BYPASS_TMP_DIR/opt/." /opt/
 
 echo Configuring zapret...
 "$ZAPRET_INSTALL_BIN"
@@ -109,13 +142,13 @@ echo Changing the settings...
 if ! ZAPRET_CONFIG_IFACE_WAN="${ZAPRET_CONFIG_IFACE_WAN:-"$(ip route show default 0.0.0.0/0 | awk '{print $5}')"}"; then
 	echo "Failed to retrieve WAN interface" >&2
 	exit 1
-fi
-if ! DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"}"; then
+elif ! DNSMASQ_CONFIG_SERVER="${DNSMASQ_CONFIG_SERVER:-"127.0.0.1#$(awk '$1 == "127.0.0.1" {print $2; exit}' /tmp/ndnproxymain.stat)"}"; then
 	echo "Failed to retrieve DNS server" >&2
 	exit 1
+elif ! select_interface; then
+	echo "Failed to retrieve routing interface" >&2
+	exit 1
 fi
-DNSMASQ_ROUTING_CONFIG_INTERFACE="${DNSMASQ_ROUTING_CONFIG_INTERFACE:-t2s0}"
-DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET="${DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET:-172.20.12.1/32}"
 
 replace_config_value "$ZAPRET_CONFIG" "IFACE_WAN" "$ZAPRET_CONFIG_IFACE_WAN"
 replace_config_value "$DNSMASQ_CONFIG" "server" "$DNSMASQ_CONFIG_SERVER"
@@ -134,6 +167,6 @@ echo Running zapret...
 echo Running dnsmasq routing...
 "$DNSMASQ_ROUTING_SCRIPT" start
 
-rm_dir "$TMP_DIR"
+rm_dir "$KEENETIC_BYPASS_TMP_DIR"
 
 echo Components have been successfully installed. For further configuration please refer to README.md file!
