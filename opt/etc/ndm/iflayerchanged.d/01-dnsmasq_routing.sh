@@ -2,12 +2,12 @@
 set -euo pipefail
 IFS=$'\n\t'
 
+DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
+. "$DNSMASQ_ROUTING_BASE/functions.sh"
+
 if [ "$1" != "hook" ] || [ "$system_name" != "$INTERFACE" ] || [ "$layer" != "link" ]; then
 	exit 0
 fi
-
-DNSMASQ_ROUTING_BASE="${DNSMASQ_ROUTING_BASE:-/opt/dnsmasq_routing}"
-. "$DNSMASQ_ROUTING_BASE/functions.sh"
 
 if [ "$level" = "running" ]; then
 	ip_route_blackhole_unapply
