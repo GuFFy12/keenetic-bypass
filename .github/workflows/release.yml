@@ -22,9 +22,11 @@ jobs:
           ZAPRET_FILE="zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
           curl -f -L -o "$ZAPRET_FILE" https://github.com/bol-van/zapret/releases/download/${{ env.ZAPRET_VERSION }}/"$ZAPRET_FILE"
 
-      - name: Copy release unar file to main repository
+      - name: Copy zapret release file to main repository
         run: |
           mkdir -p "${{ github.workspace }}/opt/zapret"
+          echo "$ZAPRET_FILE"
+          echo "ls -l"
           tar -xvzf "$ZAPRET_FILE" -C ${{ github.workspace }}/opt/zapret
 
       - name: Create an archive of repository
