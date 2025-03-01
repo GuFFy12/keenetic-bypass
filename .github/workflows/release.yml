@@ -26,7 +26,7 @@ jobs:
         run: |
           mkdir -p "${{ github.workspace }}/opt/zapret"
           ZAPRET_FILE="zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
-          tar -xvzf "/tmp/$ZAPRET_FILE" -C "${{ github.workspace }}/opt/zapret"
+          tar -xvzf "/tmp/$ZAPRET_FILE" --strip-components=1 -C "${{ github.workspace }}/opt/zapret"
 
       - name: Create a new GitHub release
         run: |
