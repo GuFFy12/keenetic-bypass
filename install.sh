@@ -154,6 +154,4 @@ echo Running zapret...
 echo Running dnsmasq routing...
 "$DNSMASQ_ROUTING_SCRIPT" start
 
-rm_dir "$KEENETIC_BYPASS_TMP_DIR"
-
 echo Components have been successfully installed. For further configuration please refer to README.md file!
