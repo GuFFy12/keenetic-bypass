@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-RELEASE_TAG="v1.0.11"
+RELEASE_TAG="v1.0.12"
 
 ZAPRET_BASE="${ZAPRET_BASE:-/opt/zapret}"
 ZAPRET_SCRIPT="${ZAPRET_SCRIPT:-"$ZAPRET_BASE/init.d/sysv/zapret_keenetic.sh"}"
@@ -134,11 +134,11 @@ else
 	RELEASE_FILE="keenetic-bypass-$RELEASE_TAG.tar.gz"
 
 	curl -f -L -o "$TMP_DIR/$RELEASE_FILE" "https://github.com/GuFFy12/keenetic-bypass/releases/download/$RELEASE_TAG/$RELEASE_FILE"
-    tar -xvzf "$TMP_DIR/$RELEASE_FILE" -C "$TMP_DIR"
-	#cp -r "$TMP_DIR/opt/*" /opt/
-	#rm -rf "$TMP_DIR"
+    tar -xvzf "$TMP_DIR/$RELEASE_FILE" -C "$TMP_DIR" -q
+	cp -r "$TMP_DIR/opt/*" /opt/
+	rm -rf "$TMP_DIR"
 fi
-exit 0
+
 echo Configuring zapret...
 "$ZAPRET_INSTALL_BIN"
 "$ZAPRET_GET_CONFIG"
