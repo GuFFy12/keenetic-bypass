@@ -89,21 +89,6 @@ add_cron_job() {
 	fi
 }
 
-ask_yes_no() {
-	echo "$2 (default: ${1:-N}) (Y/N): "
-	read -r answer
-
-	if [ -z "$answer" ]; then
-		answer="${1:-N}"
-	fi
-
-	case "$answer" in
-	[yY1]) return 0 ;;
-	[nN0]) return 1 ;;
-	*) return 1 ;;
-	esac
-}
-
 if ! command -v ndmc >/dev/null; then
 	echo Command 'ndmc' not found >&2
 	exit 1
@@ -160,12 +145,9 @@ replace_config_value "$DNSMASQ_CONFIG" "server" "$DNSMASQ_CONFIG_SERVER"
 replace_config_value "$DNSMASQ_ROUTING_CONFIG" "INTERFACE" "$DNSMASQ_ROUTING_CONFIG_INTERFACE"
 replace_config_value "$DNSMASQ_ROUTING_CONFIG" "INTERFACE_SUBNET" "$DNSMASQ_ROUTING_CONFIG_INTERFACE_SUBNET"
 
-if ask_yes_no "y" "Run ipset dnsmasq routing auto save daily?"; then
-	add_cron_job "0 0 * * * $DNSMASQ_ROUTING_SCRIPT save"
-fi
-if ask_yes_no "y" "Run zapret domain list update daily?"; then
-	add_cron_job "0 0 * * * $ZAPRET_GET_CONFIG"
-fi
+echo Configuring cron jobs...
+add_cron_job "0 0 * * * $DNSMASQ_ROUTING_SCRIPT save"
+add_cron_job "0 0 * * * $ZAPRET_GET_CONFIG"
 
 echo Running zapret...
 "$ZAPRET_SCRIPT" start
