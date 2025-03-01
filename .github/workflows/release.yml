@@ -25,18 +25,14 @@ jobs:
       - name: Copy zapret release file to main repository
         run: |
           mkdir -p "${{ github.workspace }}/opt/zapret"
-          echo "$ZAPRET_FILE"
-          echo "ls -l"
+          ZAPRET_FILE="zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
           tar -xvzf "$ZAPRET_FILE" -C ${{ github.workspace }}/opt/zapret
 
-      - name: Create an archive of repository
+      - name: Create a new GitHub release
         run: |
           RELEASE_TAG="${GITHUB_REF#refs/tags/}"
           RELEASE_FILE="${{ github.repository }}-$RELEASE_TAG.tar.gz"
           tar -czf $RELEASE_FILE --exclude='.git' --exclude='.github' -C ${{ github.workspace }} .
-
-      - name: Create a new GitHub release
-        run: |
           gh release create $RELEASE_TAG $RELEASE_FILE
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
