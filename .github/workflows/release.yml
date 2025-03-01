@@ -31,7 +31,7 @@ jobs:
       - name: Create a new GitHub release
         run: |
           RELEASE_TAG="${GITHUB_REF#refs/tags/}"
-          RELEASE_FILE="${{ github.repository }}-$RELEASE_TAG.tar.gz"
+          RELEASE_FILE="${{ github.event.repository.name }}-$RELEASE_TAG.tar.gz"
           tar -czf $RELEASE_FILE --exclude='.git' --exclude='.github' -C ${{ github.workspace }} .
           gh release create $RELEASE_TAG $RELEASE_FILE
         env:
