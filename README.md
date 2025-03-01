@@ -31,7 +31,7 @@
   или [Proxy](https://help.keenetic.com/hc/ru/articles/7474374790300).
 - Настройте пользовательский [DNS-over-HTTPS](https://help.keenetic.com/hc/ru/articles/360007687159) (пример: `https://dns.google/dns-query`).
 - Создайте записи DNS на адресе `192.168.1.1:5300` для доменов, к которым нужен доступ через туннель.
-- Пример списка доменов (Домены для GitHub поставьте после, иначе сломается установщик):
+- Пример списка доменов (не ставьте dns записи для GitHub до установки):
 
   ```plaintext
   chatgpt.com
@@ -47,7 +47,7 @@
 - Выполните следующую команду:
 
   ```sh
-  opkg update && opkg install curl && sh -c "$(curl -H 'Cache-Control: no-cache' --fail -L https://raw.githubusercontent.com/GuFFy12/keenetic-bypass/refs/heads/main/install.sh)"
+  opkg update && opkg install curl && sh -c "$(curl -H 'Cache-Control: no-cache' -f -L https://raw.githubusercontent.com/GuFFy12/keenetic-bypass/refs/heads/main/install.sh)"
   ```
 
 - Или если хотите установить в режиме оффлайн, то разархивируйте на роутере
