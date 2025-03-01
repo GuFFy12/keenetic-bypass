@@ -1,0 +1,33 @@
+name: Copy Release File from Zapret
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      ZAPRET_VERSION: v70.3
+
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v2
+
+      - name: Download release file from zapret repository
+        run: |
+          sudo apt-get install -y curl
+          curl -f -L -o zapret-${{ env.ZAPRET_VERSION }}.tar.gz https://github.com/bol-van/zapret/releases/download/${{ env.ZAPRET_VERSION }}/zapret-${{ env.ZAPRET_VERSION }}.tar.gz
+
+      - name: Upload release file to /opt/zapret
+        run: |
+          sudo cp -n zapret-${{ env.ZAPRET_VERSION }}.tar.gz /opt/zapret/
+
+      - name: Upload file to existing GitHub release
+        run: |
+          RELEASE_TAG="${GITHUB_REF#refs/tags/}"
+          gh release upload $RELEASE_TAG keenetic-bypass-${RELEASE_TAG}.tar.gz --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
