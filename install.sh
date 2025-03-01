@@ -134,7 +134,7 @@ else
 	RELEASE_FILE="keenetic-bypass-$RELEASE_TAG.tar.gz"
 
 	curl -f -L -o "$TMP_DIR/$RELEASE_FILE" "https://github.com/GuFFy12/keenetic-bypass/releases/download/$RELEASE_TAG/$RELEASE_FILE"
-	tar -xvzf "$TMP_DIR/$RELEASE_FILE" -C "$TMP_DIR" >/dev/null
+	tar -xvzf "$TMP_DIR/$RELEASE_FILE" -C "$TMP_DIR"
 	cp -r "$TMP_DIR/opt/*" /opt/
 	rm -rf "$TMP_DIR"
 fi
