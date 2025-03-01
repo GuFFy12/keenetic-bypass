@@ -33,6 +33,6 @@ jobs:
           RELEASE_TAG="${GITHUB_REF#refs/tags/}"
           RELEASE_FILE="${{ github.event.repository.name }}-$RELEASE_TAG.tar.gz"
           tar -czf "/tmp/$RELEASE_FILE" --exclude='.git' --exclude='.github' -C "${{ github.workspace }}" .
-          gh release create $RELEASE_TAG $RELEASE_FILE
+          gh release create "$RELEASE_TAG" "/tmp/$RELEASE_FILE"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
