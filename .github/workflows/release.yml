@@ -19,20 +19,20 @@ jobs:
       - name: Download release file from zapret repository
         run: |
           sudo apt-get install -y curl
-          ZAPRET_FILE="/tmp/zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
-          curl -f -L -o "$ZAPRET_FILE" https://github.com/bol-van/zapret/releases/download/${{ env.ZAPRET_VERSION }}/"$ZAPRET_FILE"
+          ZAPRET_FILE="zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
+          curl -f -L -o "/tmp/$ZAPRET_FILE" "https://github.com/bol-van/zapret/releases/download/${{ env.ZAPRET_VERSION }}/$ZAPRET_FILE"
 
       - name: Copy zapret release file to main repository
         run: |
           mkdir -p "${{ github.workspace }}/opt/zapret"
-          ZAPRET_FILE="/tmp/zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
-          tar -xvzf "$ZAPRET_FILE" -C ${{ github.workspace }}/opt/zapret
+          ZAPRET_FILE="zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
+          tar -xvzf "/tmp/$ZAPRET_FILE" -C "${{ github.workspace }}/opt/zapret"
 
       - name: Create a new GitHub release
         run: |
           RELEASE_TAG="${GITHUB_REF#refs/tags/}"
-          RELEASE_FILE="/tmp/${{ github.event.repository.name }}-$RELEASE_TAG.tar.gz"
-          tar -czf $RELEASE_FILE --exclude='.git' --exclude='.github' -C ${{ github.workspace }} .
+          RELEASE_FILE="${{ github.event.repository.name }}-$RELEASE_TAG.tar.gz"
+          tar -czf "/tmp/$RELEASE_FILE" --exclude='.git' --exclude='.github' -C "${{ github.workspace }}" .
           gh release create $RELEASE_TAG $RELEASE_FILE
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
