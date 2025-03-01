@@ -50,8 +50,8 @@
   opkg update && opkg install curl && sh -c "$(curl -H 'Cache-Control: no-cache' --fail -L https://raw.githubusercontent.com/GuFFy12/keenetic-bypass/refs/heads/main/install.sh)"
   ```
 
-- Или доступа к github нету, то скачайте файл-релиз ([ссылка](https://github.com/GuFFy12/keenetic-bypass/releases/latest)),
-  разархивируйте на роутере и запустите:
+- Или если хотите установить в режиме оффлайн, то разархивируйте на роутере
+  файл релиз [Release](https://github.com/GuFFy12/keenetic-bypass/releases/latest) и запустите:
 
   ```sh
   sh install.sh
