@@ -30,6 +30,7 @@
 - Купите, настройте и включите туннель [VPN](https://help.keenetic.com/hc/ru/articles/115005342025)
   или [Proxy](https://help.keenetic.com/hc/ru/articles/7474374790300).
 - Настройте пользовательский [DNS-over-HTTPS](https://help.keenetic.com/hc/ru/articles/360007687159) (пример: `https://dns.google/dns-query`).
+- Отключите [DNS от провайдера](https://help.keenetic.com/hc/ru/articles/360008609399).
 - Создайте записи DNS на адресе `192.168.1.1:5300` для доменов, к которым нужен доступ через туннель.
 - Пример списка доменов (не ставьте dns записи для GitHub до установки):
 
