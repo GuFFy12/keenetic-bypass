@@ -51,7 +51,7 @@
   ```
 
 - Или если хотите установить в режиме оффлайн, то разархивируйте на роутере
-  файл релиз [Release](https://github.com/GuFFy12/keenetic-bypass/releases/latest) и запустите:
+  [файл релиз](https://github.com/GuFFy12/keenetic-bypass/releases/latest) и запустите:
 
   ```sh
   sh install.sh
