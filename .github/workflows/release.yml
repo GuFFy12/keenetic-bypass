@@ -21,13 +21,19 @@ jobs:
           sudo apt-get install -y curl
           curl -f -L -o zapret-${{ env.ZAPRET_VERSION }}.tar.gz https://github.com/bol-van/zapret/releases/download/${{ env.ZAPRET_VERSION }}/zapret-${{ env.ZAPRET_VERSION }}.tar.gz
 
-      - name: Upload release file to /opt/zapret
+      - name: Copy release unar file to main repository
         run: |
-          sudo cp -n zapret-${{ env.ZAPRET_VERSION }}.tar.gz /opt/zapret/
+          mkdir -p ${{ github.workspace }}/opt/zapret
+          tar -xvzf zapret-${{ env.ZAPRET_VERSION }}.tar.gz -C ${{ github.workspace }}/opt/zapret
+
+      - name: Create an archive of repository
+        run: |
+          RELEASE_TAG="${GITHUB_REF#refs/tags/}"
+          RELEASE_FILE="${{ github.repository }}-${RELEASE_TAG}.tar.gz"
+          tar -czf ${{ github.repository }}"-${GITHUB_REF#refs/tags/}.tar.gz --exclude='.git' --exclude='.github' -C ${{ github.workspace }} .
 
       - name: Create a new GitHub release
         run: |
-          RELEASE_TAG="${GITHUB_REF#refs/tags/}"
-          gh release create $RELEASE_TAG keenetic-bypass-${RELEASE_TAG}.tar.gz --title "Release $RELEASE_TAG" --notes "Description for release $RELEASE_TAG"
+          gh release create $RELEASE_TAG $RELEASE_FILE
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
