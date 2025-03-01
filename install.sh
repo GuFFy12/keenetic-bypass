@@ -2,12 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-ZAPRET_VERSION="${ZAPRET_VERSION:-v69.9}"
-
-ZAPRET_URL="${ZAPRET_URL:-"https://github.com/bol-van/zapret/releases/download/$ZAPRET_VERSION/zapret-$ZAPRET_VERSION.tar.gz"}"
-KEENETIC_BYPASS_URL="${KEENETIC_BYPASS_URL:-https://github.com/GuFFy12/keenetic-bypass.git}"
-
-KEENETIC_BYPASS_TMP_DIR="${KEENETIC_BYPASS_TMP_DIR:-/opt/tmp/keenetic-bypass}"
+RELEASE_TAG="v1.0.12"
 
 ZAPRET_BASE="${ZAPRET_BASE:-/opt/zapret}"
 ZAPRET_SCRIPT="${ZAPRET_SCRIPT:-"$ZAPRET_BASE/init.d/sysv/zapret_keenetic.sh"}"
@@ -127,17 +122,23 @@ fi
 echo Installing packages...
 opkg update && opkg install coreutils-sort cron curl dnsmasq git-http grep gzip ipset iptables kmod_ndms xtables-addons_legacy
 
-echo Installing zapret...
+echo Delete zapret...
 delete_service "$ZAPRET_BASE" "$ZAPRET_SCRIPT"
-curl --fail -L "$ZAPRET_URL" | tar -xz -C /opt/ 2>/dev/null
-mv "/opt/zapret-$ZAPRET_VERSION/" "$ZAPRET_BASE"
 
 echo Installing Keenetic Bypass...
 delete_service "$DNSMASQ_ROUTING_BASE" "$DNSMASQ_ROUTING_SCRIPT"
-rm_dir "$KEENETIC_BYPASS_TMP_DIR"
-git clone --depth=1 "$KEENETIC_BYPASS_URL" "$KEENETIC_BYPASS_TMP_DIR"
-cp -r "$KEENETIC_BYPASS_TMP_DIR/opt/." /opt/
+if [ -n "$(readlink -f "$0")" ]; then
+	cp -r "opt/" /opt/
+else
+	TMP_DIR=$(mktemp -d)
+	RELEASE_FILE="keenetic-bypass-$RELEASE_TAG.tar.gz"
 
+	curl -f -L -o "$TMP_DIR" "https://github.com/GuFFy12/keenetic-bypass/releases/download/$RELEASE_TAG/$RELEASE_FILE"
+    tar -xvzf "$RELEASE_FILE" -C "$TMP_DIR"
+	cp -r TMP_DIR/opt/* /opt/
+	#rm -rf "$TMP_DIR"
+fi
+exit 0
 echo Configuring zapret...
 "$ZAPRET_INSTALL_BIN"
 "$ZAPRET_GET_CONFIG"
