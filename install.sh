@@ -2,7 +2,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-RELEASE_TAG=v1.0.16
+RELEASE_TAG=v1.1.7
 
 ZAPRET_BASE="${ZAPRET_BASE:-/opt/zapret}"
 ZAPRET_SCRIPT="${ZAPRET_SCRIPT:-"$ZAPRET_BASE/init.d/sysv/zapret_keenetic.sh"}"
