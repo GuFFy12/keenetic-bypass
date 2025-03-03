@@ -29,10 +29,11 @@ set_config_value() {
 
 add_cron_job() {
 	if ! crontab -l 2>/dev/null | grep -Fq "$2"; then
-		(
-			crontab -l 2>/dev/null
-			echo "$1 $2"
-		) | crontab -
+		if crontab -l 2>/dev/null; then
+			( crontab -l 2>/dev/null; echo "$1 $2" ) | crontab -
+		else
+			echo "$1 $2" | crontab -
+		fi
 	fi
 }
 
