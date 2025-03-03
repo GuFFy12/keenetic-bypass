@@ -6,7 +6,7 @@ on:
       - "v*"
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
 
     env:
@@ -16,23 +16,32 @@ jobs:
       - name: Checkout main repository
         uses: actions/checkout@v4
 
-      - name: Download release file from zapret repository
+      - name: Download and configuring zapret
         run: |
+          ZAPRET_URL="https://github.com/bol-van/zapret/releases/download/${{ env.ZAPRET_VERSION }}/$ZAPRET_FILE"
+          ZAPRET_FILE="zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
+          ZAPRET_FILE_TMP="/tmp/$ZAPRET_FILE"
+          ZAPRET_DIR="${{ github.workspace }}/opt/zapret"
+
+          echo Installing curl...
           sudo apt-get install -y curl
-          ZAPRET_FILE="zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
-          curl -f -L -o "/tmp/$ZAPRET_FILE" "https://github.com/bol-van/zapret/releases/download/${{ env.ZAPRET_VERSION }}/$ZAPRET_FILE"
 
-      - name: Copy zapret release file to main repository
-        run: |
-          mkdir -p "${{ github.workspace }}/opt/zapret"
-          ZAPRET_FILE="zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
-          tar -xvzf "/tmp/$ZAPRET_FILE" --strip-components=1 -C "${{ github.workspace }}/opt/zapret"
+          echo Downloading zapret release...
+          curl -f -L -o "$ZAPRET_FILE_TMP" "$ZAPRET_URL"
 
-      - name: Create a new GitHub release
+          echo Unarchive zapret release to workspace...
+          tar -xvzf "$ZAPRET_FILE_TMP" --strip-components=1 -C "$ZAPRET_DIR"
+
+          echo Downloading ipset list...
+          "$ZAPRET_DIR/ipset/get_config.sh"
+
+      - name: Create a new release
         run: |
           RELEASE_TAG="${GITHUB_REF#refs/tags/}"
           RELEASE_FILE="${{ github.event.repository.name }}-$RELEASE_TAG.tar.gz"
-          tar -czf "/tmp/$RELEASE_FILE" --exclude='.git' --exclude='.github' --exclude='.gitignore' -C "${{ github.workspace }}" .
-          gh release create "$RELEASE_TAG" "/tmp/$RELEASE_FILE" --generate-notes
+          RELEASE_FILE_TMP="/tmp/$RELEASE_FILE"
+
+          tar -czf "$RELEASE_FILE_TMP" --exclude='.git' --exclude='.github' --exclude='.gitignore' -C "${{ github.workspace }}" .
+          gh release create "$RELEASE_TAG" "$RELEASE_FILE_TMP" --generate-notes
         env:
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GH_TOKEN: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
