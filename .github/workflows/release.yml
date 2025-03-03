@@ -18,8 +18,8 @@ jobs:
 
       - name: Download and configuring zapret
         run: |
-          ZAPRET_URL="https://github.com/bol-van/zapret/releases/download/${{ env.ZAPRET_VERSION }}/$ZAPRET_FILE"
           ZAPRET_FILE="zapret-${{ env.ZAPRET_VERSION }}.tar.gz"
+          ZAPRET_URL="https://github.com/bol-van/zapret/releases/download/${{ env.ZAPRET_VERSION }}/$ZAPRET_FILE"
           ZAPRET_FILE_TMP="/tmp/$ZAPRET_FILE"
           ZAPRET_DIR="${{ github.workspace }}/opt/zapret"
 
