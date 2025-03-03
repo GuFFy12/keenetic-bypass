@@ -28,14 +28,11 @@ set_config_value() {
 }
 
 add_cron_job() {
-	if ! crontab -l 2>/dev/null | grep -Fq "$1"; then
+	if ! crontab -l 2>/dev/null | grep -Fq "$2"; then
 		(
 			crontab -l 2>/dev/null
-			echo "$1"
+			echo "$1 $2"
 		) | crontab -
-		echo "Cronjob added: $1"
-	else
-		echo "Cronjob already exists: $1"
 	fi
 }
 
@@ -104,7 +101,7 @@ echo Configuring zapret...
 "$ZAPRET_INSTALL_BIN"
 
 if ask_yes_no "Create cron job to auto update zapret ipset list?"; then
-	add_cron_job "0 0 * * * $ZAPRET_GET_CONFIG"
+	add_cron_job "0 0 * * *" "$ZAPRET_GET_CONFIG"
 fi
 
 echo Running zapret...
