@@ -95,7 +95,7 @@ if ! get_zapret_config_iface_wan; then
 	exit 1
 fi
 
-replace_config_value "$ZAPRET_CONFIG" "IFACE_WAN" "$ZAPRET_CONFIG_IFACE_WAN"
+set_config_value "$ZAPRET_CONFIG" "IFACE_WAN" "$ZAPRET_CONFIG_IFACE_WAN"
 
 echo Configuring zapret...
 "$ZAPRET_INSTALL_BIN"
